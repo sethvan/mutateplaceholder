@@ -1,0 +1,20 @@
+#!/bin/sh
+# SPDX-License-Identifier: GPL-3.0-only or GPL-3.0-or-later
+
+set -e
+
+marchOpts=''
+if test "_$(uname -m)" = "_x86_64" ; then
+  marchOpts='-march=nehalem -mtune=native -mfpmath=387 -mfancy-math-387'
+fi
+
+printf "Compiling with: g++ -std=c++17 -O3 -fno-unroll-loops -fdata-sections -ffunction-sections -fmerge-all-constants -flimit-function-alignment -fdevirtualize-speculatively -fdevirtualize-at-ltrans -fipa-pta -floop-parallelize-all -ftree-loop-ivcanon -fivopts $marchOpts -z noseparate-code -fno-math-errno -fuse-linker-plugin -flto -Wl,-flto -Wl,--hash-style=gnu -Wl,-z,norelro -Wl,--build-id=none -Wl,--gc-sections -fno-stack-protector -fno-unwind-tables -fno-asynchronous-unwind-tables -fwrapv -w -I./include -o mutaterelease -lpcre2-8"
+find src \( \( -name "*.cpp" -o -name "*.cxx" -o -name "*.c[+][+]" -o -name "*.c" \) -a \! -name test.cpp \) -print0 | xargs --null printf " %q" 1>&2
+printf '\n'
+
+find src \( \( -name "*.cpp" -o -name "*.cxx" -o -name "*.c[+][+]" -o -name "*.c" \) -a \! -name test.cpp \) -print0 | xargs --null g++ -std=c++17 -O3 -fno-unroll-loops -fdata-sections -ffunction-sections -fmerge-all-constants -flimit-function-alignment -fdevirtualize-speculatively -fdevirtualize-at-ltrans -fipa-pta -floop-parallelize-all -ftree-loop-ivcanon -fivopts $marchOpts -z noseparate-code -fno-math-errno -fuse-linker-plugin -flto -Wl,-flto -Wl,--hash-style=gnu -Wl,-z,norelro -Wl,--build-id=none -Wl,--gc-sections -fno-stack-protector -fno-unwind-tables -fno-asynchronous-unwind-tables -fwrapv -w -I./include -o mutaterelease -lpcre2-8 1>&2
+
+strip -S --strip-unneeded --remove-section=.note.gnu.gold-version --remove-section=.comment --remove-section=.note --remove-section=.note.gnu.build-id --remove-section=.note.ABI-tag ./mutaterelease
+
+./mutaterelease "$@"
+

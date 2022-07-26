@@ -1,0 +1,9 @@
+**/CMakeFiles
+**/Makefile
+**/build/CMakeCache.txt
+**/build/cmake_install.cmake
+**/mutatetester
+mutateplaceholder/mutateplaceholder
+tools
+examples
+docs

@@ -1,0 +1,14 @@
+#!/bin/sh
+# SPDX-License-Identifier: GPL-3.0-only or GPL-3.0-or-later
+
+set -e
+
+printf 'Compiling with: g++ -D_GLIBCXX_ASSERTIONS -std=c++17 -g -ggdb3 -fno-omit-frame-pointer -fasynchronous-unwind-tables -fsanitize=address -fstack-protector-all -fwrapv -Wall -Wextra -Werror -Wl,-z,defs -I./include -o mutateplaceholder -lpcre2-8'
+find src \( \( -name "*.cpp" -o -name "*.cxx" -o -name "*.c[+][+]" -o -name "*.c" \) -a \! -name test.cpp \) -print0 | xargs --null printf " %q" 1>&2
+printf '\n'
+
+cmake -B build
+cmake --build build
+mv $(pwd)/build/mutateplaceholder $(pwd)/mutateplaceholder
+
+./mutateplaceholder "$@"
