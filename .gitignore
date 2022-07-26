@@ -3,7 +3,7 @@
 **/build/CMakeCache.txt
 **/build/cmake_install.cmake
 **/mutatetester
-mutateplaceholder/mutateplaceholder
+mutateplaceholder
 tools
 examples
 docs
