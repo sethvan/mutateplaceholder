@@ -212,10 +212,10 @@ void Mutator::multilineReplace(std::string& subject, const SelectedMutation& sm)
         pos += permutationString.length();
         addIndentation = false;
     }
-    if (!matches) { opts->addNoMatchLine(sm.data.lineNumber); }
-    else if (matches > 1) {
+    if (!matches)
+        opts->addNoMatchLine(sm.data.lineNumber);
+    else if (matches > 1)
         opts->addMultipleMatchLine(sm.data.lineNumber);
-    }
 }
 
 bool Mutator::lineEdgesAreGood(std::string::iterator& begin, std::string::iterator& end, const std::string& str) {
