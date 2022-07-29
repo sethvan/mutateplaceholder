@@ -92,11 +92,9 @@ bool Mutator::isMultilineString(std::string_view str) const {
     if ((it + 1) != str.end()) {
         while ((it + 2) != str.end()) {
             ++it;
-            if (*it == '\n' || *it == '\n') {
-                if ((*(it - 1) != '\n') && (*(it - 1) != '\r') && (*(it + 1) != '\n') && (*(it + 1) != '\r')) {
-                    return true;
-                }
-            }
+            if ((*it == '\n' || *it == '\n') && (*(it - 1) != '\n') && (*(it - 1) != '\r') && (*(it + 1) != '\n') &&
+                (*(it + 1) != '\r'))
+                return true;
         }
     }
     return false;
