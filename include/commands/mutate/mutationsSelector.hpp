@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: GPL-3.0-only or GPL-3.0-or-later */
 /*
- * mutationsSelector.hpp: This class randomly selects from the possible mutations captured by the MutationsRetriever class. 
+ * mutationsSelector.hpp: This class randomly selects from the possible mutations captured by the MutationsRetriever
+ class.
  *
  * Copyright (c) 2022 RightEnd
  *
@@ -24,56 +25,53 @@
 #include <optional>
 #include <vector>
 
-
-#include "chacharng/chacharng.hpp"
 #include "../cli-options.hpp"
-#include "commands/mutate/mutateDataStructures.hpp"
+#include "chacharng/chacharng.hpp"
 #include "chacharng/seedHelper.hpp"
+#include "commands/mutate/mutateDataStructures.hpp"
 
 class MutationsSelector {
+   private:
+    CLIOptions* opts;
 
-	private:
-		CLIOptions* opts;	
+    PossibleMutVec& possibleMutations;
 
-		PossibleMutVec& possibleMutations;
-		
-		SelectedMutVec selectedMutations;
+    SelectedMutVec selectedMutations;
 
-		SeedArray seedArray;
+    SeedArray seedArray;
 
-		State rng;
+    State rng;
 
-		int selectedMutCount;
+    int selectedMutCount;
 
-		size_t pmVecSize; // just to not calculate or retrieve more than once
+    size_t pmVecSize;  // just to not calculate or retrieve more than once
 
-		void selectPermutation(size_t index, PossibleMutVec::iterator& it );
-		
-		void setSeedArray();
+    void selectPermutation(size_t index, PossibleMutVec::iterator& it);
 
-		void setSelectedMutCount();
+    void setSeedArray();
 
-		void selectMutations();
+    void setSelectedMutCount();
 
-		void groupedSelectPermutation(const std::vector<size_t>& indexes, size_t groupNumber, PossibleMutVec::iterator& it);
+    void selectMutations();
 
-		void addAnythingElseNested(const std::vector<size_t>& indexes, size_t groupNumber, PossibleMutVec::iterator& it);
+    void groupedSelectPermutation(const std::vector<size_t>& indexes, size_t groupNumber, PossibleMutVec::iterator& it);
 
-		void addNestedLine(const std::vector<size_t>& indexes, size_t groupNumber, PossibleMutVec::iterator& it);
+    void addAnythingElseNested(const std::vector<size_t>& indexes, size_t groupNumber, PossibleMutVec::iterator& it);
 
-		void addNewGroup(std::vector<size_t>& indexes, size_t& newGroupNumber, PossibleMutVec::iterator& leader);
+    void addNestedLine(const std::vector<size_t>& indexes, size_t groupNumber, PossibleMutVec::iterator& it);
 
-		void sortOutNegatedLines(bool negatedTest);
+    void addNewGroup(std::vector<size_t>& indexes, size_t& newGroupNumber, PossibleMutVec::iterator& leader);
 
-		void selectIndexes();
+    void sortOutNegatedLines(bool negatedTest);
 
-	public:
-		MutationsSelector(CLIOptions* _opts, PossibleMutVec& _possibleMutations);
+    void selectIndexes();
 
-		SelectedMutVec& getSelectedMutations();
+   public:
+    MutationsSelector(CLIOptions* _opts, PossibleMutVec& _possibleMutations);
 
-		std::vector<size_t> selectedIndexes; // Public for testing purposes
-		
+    SelectedMutVec& getSelectedMutations();
+
+    std::vector<size_t> selectedIndexes;  // Public for testing purposes
 };
 
 #endif  // _INCLUDED_MUTATIONSSELECTOR_HPP_

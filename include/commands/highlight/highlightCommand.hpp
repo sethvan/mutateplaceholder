@@ -4,7 +4,8 @@
  *
  * - This can be thought of as a self-contained subprogram within the larger mutation program
  * - This manages, organizes, and glues together all the neccecary functionality for mutation highlighting
- * - The output is an interactive HTML file which shows a side-by-side comparison with useful information and line highlighting
+ * - The output is an interactive HTML file which shows a side-by-side comparison with useful information and line
+ highlighting
  *
  * Copyright (c) 2022 RightEnd
  *
@@ -25,26 +26,25 @@
 #ifndef _INCLUDED_COMMANDS_HIGHLIGHT_HPP
 #define _INCLUDED_COMMANDS_HIGHLIGHT_HPP
 
-#include "common.hpp"
-#include "commands/cli-options.hpp"
-#include <cstdint>
 #include <cstddef>
+#include <cstdint>
 #include <cstdlib>
 #include <string>
 #include <vector>
 
-	
-	std::string printHighlightHelp(const char *indent);
+#include "commands/cli-options.hpp"
+#include "common.hpp"
 
-	std::string printHighlightHelp(std::string indent);
+std::string printHighlightHelp(const char *indent);
 
-	std::string printHighlightHelp(void);
+std::string printHighlightHelp(std::string indent);
 
-	void validateHighlightArgs(CLIOptions * opts, std::vector<std::string> * nonpositionals);
+std::string printHighlightHelp(void);
 
-	void doHighlightAction(CLIOptions * opts, std::vector<std::string> * nonpositionals);
+void validateHighlightArgs(CLIOptions *opts, std::vector<std::string> *nonpositionals);
 
-	ParseArgvStatusCode execHighlight(CLIOptions * opts, std::vector<std::string> * nonpositionals);
+void doHighlightAction(CLIOptions *opts, std::vector<std::string> *nonpositionals);
 
+ParseArgvStatusCode execHighlight(CLIOptions *opts, std::vector<std::string> *nonpositionals);
 
-#endif//_INCLUDED_COMMANDS_HIGHLIGHT_HPP
+#endif  //_INCLUDED_COMMANDS_HIGHLIGHT_HPP

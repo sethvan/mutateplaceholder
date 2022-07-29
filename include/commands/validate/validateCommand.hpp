@@ -3,8 +3,10 @@
  * validate.hpp: Header to be used only by main.cpp to bolt things together
  *
  * - This can be thought of as a self-contained subprogram within the larger mutation program
- * - This manages, organizes, and glues together all the neccecary functionality to find "dead" mutation (mutations that don't match any source code lines)
- * - The output is a pretty-printed list of lines in the mutation file which do not match any source code lines followed by a general pretty-printed one-line summary of useful statistics about the mutation file
+ * - This manages, organizes, and glues together all the neccecary functionality to find "dead" mutation (mutations that
+     don't match any source code lines)
+ * - The output is a pretty-printed list of lines in the mutation file which do not match any source code lines followed
+     by a general pretty-printed one-line summary of useful statistics about the mutation file
  *
  * Copyright (c) 2022 RightEnd
  *
@@ -25,26 +27,25 @@
 #ifndef _INCLUDED_COMMANDS_VALIDATE_HPP
 #define _INCLUDED_COMMANDS_VALIDATE_HPP
 
-#include "common.hpp"
-#include "commands/cli-options.hpp"
-#include <cstdint>
 #include <cstddef>
+#include <cstdint>
 #include <cstdlib>
 #include <string>
 #include <vector>
 
+#include "commands/cli-options.hpp"
+#include "common.hpp"
 
-	std::string printValidateHelp(const char *indent);
+std::string printValidateHelp(const char *indent);
 
-	std::string printValidateHelp(std::string indent);
+std::string printValidateHelp(std::string indent);
 
-	std::string printValidateHelp(void);
+std::string printValidateHelp(void);
 
-	void validateValidateArgs(CLIOptions * opts, std::vector<std::string> * nonpositionals);
+void validateValidateArgs(CLIOptions *opts, std::vector<std::string> *nonpositionals);
 
-	void doValidateAction(CLIOptions * opts, std::vector<std::string> * nonpositionals);
+void doValidateAction(CLIOptions *opts, std::vector<std::string> *nonpositionals);
 
-	ParseArgvStatusCode execValidate(CLIOptions * opts, std::vector<std::string> * nonpositionals);
+ParseArgvStatusCode execValidate(CLIOptions *opts, std::vector<std::string> *nonpositionals);
 
-
-#endif//_INCLUDED_COMMANDS_VALIDATE_HPP
+#endif  //_INCLUDED_COMMANDS_VALIDATE_HPP

@@ -26,60 +26,59 @@
 #include <ostream>
 #include <string>
 #include <unordered_map>
+
 #include "../cli-options.hpp"
 #include "commands/mutate/mutateDataStructures.hpp"
 //#include "commands/mutate/jpcre2.hpp"
 
 struct MutatedLine {
+    int lineNumber;
+    size_t lineIndex;  // where in line the pattern starts
+    std::string_view mutation;
 
-	int lineNumber;
-	size_t lineIndex;  // where in line the pattern starts
-	std::string_view mutation;
-		
-	MutatedLine(int _lineNumber, size_t _lineIndex, std::string_view _mutation)
-	: lineNumber{_lineNumber}, lineIndex{_lineIndex}, mutation{_mutation} {}
+    MutatedLine(int _lineNumber, size_t _lineIndex, std::string_view _mutation)
+        : lineNumber{_lineNumber}, lineIndex{_lineIndex}, mutation{_mutation} {}
 };
 using MutatedLinesMap = std::unordered_map<std::string_view, std::vector<MutatedLine>>;
 
+class Mutator {  // Made class for now, may change
 
-class Mutator { // Made class for now, may change
+   private:
+    std::string sourceString;
 
-	private:
-		std::string sourceString;
+    std::string& outputString;
 
-		std::string& outputString;
+    SelectedMutVec selectedMutations;
 
-		SelectedMutVec selectedMutations;
+    CLIOptions* opts;
 
-		CLIOptions* opts;
+    void mutate();
 
-		void mutate();
+    void replaceStringInPlace(std::string& subject, const SelectedMutation& sm);
 
-		void replaceStringInPlace(std::string& subject, const SelectedMutation& sm);
+    void multilineReplace(std::string& subject, const SelectedMutation& sm);
 
-		void multilineReplace(std::string& subject, const SelectedMutation& sm);
+    void regexReplace(std::string& subject, const SelectedMutation& sm);
 
-		void regexReplace(std::string& subject, const SelectedMutation& sm);
+    bool isMultilineString(std::string_view str) const;
 
-		bool isMultilineString(std::string_view str) const;
+    bool lineEdgesAreGood(std::string::iterator& begin, std::string::iterator& end, const std::string& str);
 
-		bool lineEdgesAreGood(std::string::iterator& begin, std::string::iterator& end, const std::string& str);
+    bool substringIsMatch(const std::string& subject, std::string::iterator it, const std::string& str);
 
-		bool substringIsMatch(const std::string& subject, std::string::iterator it, const std::string& str);
-		
-		bool wholeLineDoesMatch();
+    bool wholeLineDoesMatch();
 
-		std::vector<std::string> separateLinesIntoVector(std::string_view);
+    std::vector<std::string> separateLinesIntoVector(std::string_view);
 
-		std::string removeSrcStrComments();
+    std::string removeSrcStrComments();
 
-	public:
-		Mutator(std::string _sourceString, std::string& _outputString, SelectedMutVec _selectedMutations, CLIOptions* _opts);
+   public:
+    Mutator(std::string _sourceString, std::string& _outputString, SelectedMutVec _selectedMutations,
+            CLIOptions* _opts);
 
-		MutatedLinesMap mutatedLines;
-		
-		long mutatedLineCount {};
+    MutatedLinesMap mutatedLines;
 
+    long mutatedLineCount{};
 };
 
 #endif  // _INCLUDED_MUTATOR_HPP_

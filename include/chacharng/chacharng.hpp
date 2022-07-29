@@ -24,35 +24,32 @@
 #include <cstddef>
 #include <cstdint>
 
-
 constexpr std::size_t SEED_SIZE_BYTES = 8 * 4;
 
 class State {
-	private:
-		std::uint32_t block[16];
-		std::uint32_t out[16];
-		unsigned pos;
+   private:
+    std::uint32_t block[16];
+    std::uint32_t out[16];
+    unsigned pos;
 
-	public:
-		using result_type = uint32_t;
+   public:
+    using result_type = uint32_t;
 
-		State();
+    State();
 
-		State(std::uint8_t* inSeed);
+    State(std::uint8_t* inSeed);
 
-		static inline constexpr result_type min() { return 0; }
-		static inline constexpr result_type max() { return UINT32_MAX; }
+    static inline constexpr result_type min() { return 0; }
+    static inline constexpr result_type max() { return UINT32_MAX; }
 
-		void seed(std::uint8_t* inSeed);
+    void seed(std::uint8_t* inSeed);
 
-		std::uint32_t next32();
-		std::uint64_t next64();
+    std::uint32_t next32();
+    std::uint64_t next64();
 
-		result_type operator()();
+    result_type operator()();
 };
 
-uint32_t nextRNGBetween(const uint32_t min, const uint32_t max, State& generator); 
-
-
+uint32_t nextRNGBetween(const uint32_t min, const uint32_t max, State& generator);
 
 #endif  //_INCLUDED_CHACHARNG_HPP

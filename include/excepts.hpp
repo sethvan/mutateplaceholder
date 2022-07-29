@@ -19,7 +19,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-
 #ifndef _INCLUDED_EXCEPTS_HPP_
 #define _INCLUDED_EXCEPTS_HPP_
 
@@ -27,43 +26,35 @@
 #include <string>
 
 class TSVParsingException : public std::runtime_error {
-	public:
-		TSVParsingException() : std::runtime_error("Error parsing TSV File") {}
-		explicit TSVParsingException(const std::string& message)
-			: std::runtime_error(message) {}
-		explicit TSVParsingException(const char* message)
-			: std::runtime_error(message) {}
-		~TSVParsingException() = default;
+   public:
+    TSVParsingException() : std::runtime_error("Error parsing TSV File") {}
+    explicit TSVParsingException(const std::string& message) : std::runtime_error(message) {}
+    explicit TSVParsingException(const char* message) : std::runtime_error(message) {}
+    ~TSVParsingException() = default;
 };
 
 class InvalidSeedException : public std::runtime_error {
-	public:
-		InvalidSeedException() : std::runtime_error("Error processing seed") {}
-		explicit InvalidSeedException(const std::string& message)
-			: std::runtime_error(message) {}
-		explicit InvalidSeedException(const char* message)
-			: std::runtime_error(message) {}
-		~InvalidSeedException() = default;
+   public:
+    InvalidSeedException() : std::runtime_error("Error processing seed") {}
+    explicit InvalidSeedException(const std::string& message) : std::runtime_error(message) {}
+    explicit InvalidSeedException(const char* message) : std::runtime_error(message) {}
+    ~InvalidSeedException() = default;
 };
 
 class InvalidArgumentException : public std::runtime_error {
-	public:
-		InvalidArgumentException() : std::runtime_error("Error processing arguments") {}
-		explicit InvalidArgumentException(const std::string& message)
-			: std::runtime_error(message) {}
-		explicit InvalidArgumentException(const char* message)
-			: std::runtime_error(message) {}
-		~InvalidArgumentException() = default;
+   public:
+    InvalidArgumentException() : std::runtime_error("Error processing arguments") {}
+    explicit InvalidArgumentException(const std::string& message) : std::runtime_error(message) {}
+    explicit InvalidArgumentException(const char* message) : std::runtime_error(message) {}
+    ~InvalidArgumentException() = default;
 };
 
 class IOErrorException : public std::runtime_error {
-	public:
-		IOErrorException() : std::runtime_error("I/O error") {}
-		explicit IOErrorException(const std::string& message)
-			: std::runtime_error(message) {}
-		explicit IOErrorException(const char* message)
-			: std::runtime_error(message) {}
-		~IOErrorException() = default;
+   public:
+    IOErrorException() : std::runtime_error("I/O error") {}
+    explicit IOErrorException(const std::string& message) : std::runtime_error(message) {}
+    explicit IOErrorException(const char* message) : std::runtime_error(message) {}
+    ~IOErrorException() = default;
 };
 
 #endif  // _INCLUDED_EXCEPTS_HPP_

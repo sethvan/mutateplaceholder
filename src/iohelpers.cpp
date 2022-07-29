@@ -23,128 +23,119 @@
  */
 
 #include "iohelpers.hpp"
-#include <errno.h>
-#include <optional>
-#include <cstring>
-#include <cstdio>
-#include <excepts.hpp>
 
+#include <errno.h>
+
+#include <cstdio>
+#include <cstring>
+#include <optional>
+
+#include "excepts.hpp"
 
 // helper method for reading a whole file into a std::string
-std::string readWholeFileIntoString(std::FILE * handle, const char * errMsg) {
-	char buffer[IO_BUFF_SIZE];
-	std::string fileContents;
-		
-	while ( ! feof(handle)) {
-		size_t readN = fread((void *) buffer, 1, IO_BUFF_SIZE, handle);
-		int err = ferror( handle );
-		if ((readN == 0 && ! feof( handle )) || (err != EOK && err != EAGAIN)) {
-			throw IOErrorException( errMsg );
-			return std::string("", 0);
-		}
-			
-		fileContents.append( buffer, readN );
-	}
+std::string readWholeFileIntoString(std::FILE *handle, const char *errMsg) {
+    char buffer[IO_BUFF_SIZE];
+    std::string fileContents;
 
-	return fileContents;
+    while (!feof(handle)) {
+        size_t readN = fread((void *)buffer, 1, IO_BUFF_SIZE, handle);
+        int err = ferror(handle);
+        if ((readN == 0 && !feof(handle)) || (err != EOK && err != EAGAIN)) {
+            throw IOErrorException(errMsg);
+            return std::string("", 0);
+        }
+
+        fileContents.append(buffer, readN);
+    }
+
+    return fileContents;
 }
 
 // helper method for reading stdin up to a deliminator line or EOF
-void readStdinLinesIntoOptionalString(char * deliminator, std::optional<std::string> * output) {
-	char buffTmp[IO_BUFF_SIZE + 16];// = {0};
-	int err = 0;
-		
-	while ( ! feof( stdin )) {
-		if (nullptr == std::fgets(buffTmp, IO_BUFF_SIZE + 1, stdin)) {
-			err = ferror( stdin );
-			if (err == EAGAIN) continue;
-			if (feof( stdin )) break;
-			throw IOErrorException( "I/O error reading from stdin" );
-		}
-			
-		if (0 == std::strcmp(deliminator, buffTmp)) {
-			break;
-		}
-			
-		if ( ! output->has_value()) {
-			output->emplace( buffTmp );
-		} 
-		else {
-			output->value().append(buffTmp);
-		}
-	}
+void readStdinLinesIntoOptionalString(char *deliminator, std::optional<std::string> *output) {
+    char buffTmp[IO_BUFF_SIZE + 16];  // = {0};
+    int err = 0;
 
-	err = ferror( stdin );
-	if (err != EOK && err != EAGAIN) {
-		throw IOErrorException( "I/O error reading from stdin" );
-	}
-		
-	if ( ! output->has_value()) output->emplace( "", 0 );
+    while (!feof(stdin)) {
+        if (nullptr == std::fgets(buffTmp, IO_BUFF_SIZE + 1, stdin)) {
+            err = ferror(stdin);
+            if (err == EAGAIN) continue;
+            if (feof(stdin)) break;
+            throw IOErrorException("I/O error reading from stdin");
+        }
 
-}
-	
-void initializeSrcTsvTogetherFromStdin(std::optional<std::string> * srcString, std::optional<std::string> * tsvString) {
-	if (srcString->has_value() && tsvString->has_value()) return;
+        if (0 == std::strcmp(deliminator, buffTmp)) { break; }
 
-	char deliminator[IO_BUFF_SIZE + 16];// = {0};
-		if (nullptr == std::fgets(deliminator, IO_BUFF_SIZE + 1, stdin)) {
-		if ( ! feof( stdin )) {
-			throw IOErrorException( "I/O error reading from stdin" );
-		}
-	}
+        if (!output->has_value()) { output->emplace(buffTmp); }
+        else {
+            output->value().append(buffTmp);
+        }
+    }
 
-	readStdinLinesIntoOptionalString(deliminator, srcString);
-		
-	if (feof( stdin )) {
-		throw IOErrorException( "Encountered EOF in stdin before encountering the second deliminator (first line of stdin) separating the mutation file and the source code file" );
-	}
-		
-	readStdinLinesIntoOptionalString(deliminator, tsvString);
-}
-	
-void writeStringToFileHandle(std::FILE * handle, std::string textData) {
-	const char * str = textData.c_str();
-	const std::size_t len = textData.size();
-		
-	for (size_t pos=0; pos < len; ) {
-		size_t written = std::fwrite((const void *)(str + pos), 1, len - pos, handle);
-			
-		int err = ferror( handle );
-		if ((written == 0 && ! feof( handle )) || (err != EOK && err != EAGAIN)) {
-			throw IOErrorException( "I/O error writing to output file" );
-		}			
-		pos += written;
-	}
+    err = ferror(stdin);
+    if (err != EOK && err != EAGAIN) { throw IOErrorException("I/O error reading from stdin"); }
+
+    if (!output->has_value()) output->emplace("", 0);
 }
 
-void readSeedFileIntoString(std::FILE * seedInput, std::optional<std::string> * output) {
-	// "+ 1" is needed in order to hold the trailing NULL
-	char readCharBuff[IO_BUFF_SIZE + 16] = {0};
+void initializeSrcTsvTogetherFromStdin(std::optional<std::string> *srcString, std::optional<std::string> *tsvString) {
+    if (srcString->has_value() && tsvString->has_value()) return;
 
-	char * aliasPtr = std::fgets(readCharBuff, IO_BUFF_SIZE + 1, seedInput);
-		
-	if (aliasPtr == nullptr) {
-		throw IOErrorException( "I/O error reading from seed file" );
-	} 
-	else {
-		// First, trim trailing new line
-		char * newLine = strchr( readCharBuff, '\n' );
-		if (newLine != nullptr) *newLine = 0;
-			
-		output->emplace( readCharBuff );
-	}
+    char deliminator[IO_BUFF_SIZE + 16];  // = {0};
+    if (nullptr == std::fgets(deliminator, IO_BUFF_SIZE + 1, stdin)) {
+        if (!feof(stdin)) { throw IOErrorException("I/O error reading from stdin"); }
+    }
 
-	if ( output->value().size() != RNG_SEED_LENGTH ) {
-		throw InvalidSeedException(" Error : Invalid input seed. Expected 64 hexadecimal digits");			
-	}
+    readStdinLinesIntoOptionalString(deliminator, srcString);
+
+    if (feof(stdin)) {
+        throw IOErrorException(
+            "Encountered EOF in stdin before encountering the second deliminator (first line of stdin) separating the "
+            "mutation file and the source code file");
+    }
+
+    readStdinLinesIntoOptionalString(deliminator, tsvString);
 }
 
-void closeAndNullifyFileHandle(std::FILE ** handle) {
-	if (*handle != nullptr) {
-		if (*handle != stdin && *handle != stdout) std::fclose( *handle );
-			
-		*handle = nullptr;
-	}
+void writeStringToFileHandle(std::FILE *handle, std::string textData) {
+    const char *str = textData.c_str();
+    const std::size_t len = textData.size();
+
+    for (size_t pos = 0; pos < len;) {
+        size_t written = std::fwrite((const void *)(str + pos), 1, len - pos, handle);
+
+        int err = ferror(handle);
+        if ((written == 0 && !feof(handle)) || (err != EOK && err != EAGAIN)) {
+            throw IOErrorException("I/O error writing to output file");
+        }
+        pos += written;
+    }
 }
 
+void readSeedFileIntoString(std::FILE *seedInput, std::optional<std::string> *output) {
+    // "+ 1" is needed in order to hold the trailing NULL
+    char readCharBuff[IO_BUFF_SIZE + 16] = {0};
 
+    char *aliasPtr = std::fgets(readCharBuff, IO_BUFF_SIZE + 1, seedInput);
+
+    if (aliasPtr == nullptr) { throw IOErrorException("I/O error reading from seed file"); }
+    else {
+        // First, trim trailing new line
+        char *newLine = strchr(readCharBuff, '\n');
+        if (newLine != nullptr) *newLine = 0;
+
+        output->emplace(readCharBuff);
+    }
+
+    if (output->value().size() != RNG_SEED_LENGTH) {
+        throw InvalidSeedException(" Error : Invalid input seed. Expected 64 hexadecimal digits");
+    }
+}
+
+void closeAndNullifyFileHandle(std::FILE **handle) {
+    if (*handle != nullptr) {
+        if (*handle != stdin && *handle != stdout) std::fclose(*handle);
+
+        *handle = nullptr;
+    }
+}

@@ -39,7 +39,6 @@
 #include "mutationsSelector.hpp"
 #include "mutator.hpp"
 
-	
 std::string printMutateHelp(const char *indent);
 
 std::string printMutateHelp(std::string indent);
@@ -51,6 +50,5 @@ void validateMutateArgs(CLIOptions *opts, std::vector<std::string> *nonpositiona
 void doMutateAction(CLIOptions *opts, std::vector<std::string> *nonpositionals);
 
 ParseArgvStatusCode execMutate(CLIOptions *opts, std::vector<std::string> *nonpositionals);
-
 
 #endif  //_INCLUDED_COMMANDS_MUTATE_HPP

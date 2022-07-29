@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: GPL-3.0-only or GPL-3.0-or-later */
 /*
- * mutationsRetriever.hpp: This class parses and validates the TSV input, capturing the possible mutations. 
+ * mutationsRetriever.hpp: This class parses and validates the TSV input, capturing the possible mutations.
  *
  * Copyright (c) 2022 RightEnd
  *
@@ -22,58 +22,58 @@
 #define _INCLUDED_MUTATIONSRETRIEVER_HPP_
 
 #include <istream>
+#include <map>
 #include <string>
 #include <vector>
-#include <map>
 
 #include "commands/mutate/mutateDataStructures.hpp"
 
 struct TSVRow {
-	std::string row;
-	int lineNumber;
+    std::string row;
+    int lineNumber;
 };
 
 class MutationsRetriever {
+    using stringIter = std::string::iterator;
 
-	using stringIter = std::string::iterator;
+   private:
+    std::istream& tsvStream;
 
-	private:
-		std::istream& tsvStream;
+    PossibleMutVec possibleMutations;
 
-		PossibleMutVec possibleMutations;
+    void capturePossibleMutations();
 
-		void capturePossibleMutations();
+    void categorizeMutations();
 
-		void categorizeMutations();
+    std::string getPatternOrPermutation(stringIter& it, const stringIter& end, int& lineNumber, int rowBeginningLine);
 
-		std::string getPatternOrPermutation(stringIter& it, const stringIter& end, int& lineNumber, int rowBeginningLine);
+    static bool noPermutationsInLine(stringIter it, const stringIter& end);
 
-		static bool noPermutationsInLine(stringIter it, const stringIter& end);		
+    static void checkIndentation(stringIter it, const stringIter& end, int& lineNumber);
 
-		static void checkIndentation(stringIter it, const stringIter& end, int& lineNumber);
+    static void verifyHasPermutation(stringIter it, const stringIter& end, int& lineNumber, int rowBeginningLine);
 
-		static void verifyHasPermutation(stringIter it, const stringIter& end,	int& lineNumber, int rowBeginningLine);
+    static void throwInvalidCharException(stringIter it, const stringIter& end, int index, int lineNumber,
+                                          int rowBeginningLine);
 
-		static void throwInvalidCharException(stringIter it, const stringIter& end, int index, int lineNumber, int rowBeginningLine);
+    static void throwTerminatingQuoteException(int lineNumber);
 
-		static void throwTerminatingQuoteException(int lineNumber);
+    static void throwEmptyPatternException(int lineNumber);
 
-		static void throwEmptyPatternException(int lineNumber);
+    static void caseCaret(stringIter patIt, PossibleMutVec::iterator& pmIt);
 
-		static void caseCaret(stringIter patIt, PossibleMutVec::iterator& pmIt);
+    static void caseSynced(stringIter patIt, PossibleMutVec::iterator& pmIt);
 
-		static void caseSynced(stringIter patIt, PossibleMutVec::iterator& pmIt);
+    static void caseSpecialChars(stringIter patIt, PossibleMutVec::iterator& pmIt);
 
-		static void caseSpecialChars(stringIter patIt, PossibleMutVec::iterator& pmIt);
+    std::vector<TSVRow> getRows();
 
-		std::vector<TSVRow> getRows();
+    void checkNesting();
 
-		void checkNesting();
+   public:
+    MutationsRetriever(std::istream& tsvInput);
 
-	public:
-		MutationsRetriever(std::istream& tsvInput);
-		
-		PossibleMutVec& getPossibleMutations();
+    PossibleMutVec& getPossibleMutations();
 };
 
 #endif  // _INCLUDED_MUTATIONSRETRIEVER_HPP_

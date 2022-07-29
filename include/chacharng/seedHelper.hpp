@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: GPL-3.0-only or GPL-3.0-or-later */
 /*
- * seedHelper.hpp: Header for the functions used to generate the seed for the chacharng random number generator. 
+ * seedHelper.hpp: Header for the functions used to generate the seed for the chacharng random number generator.
  *
  * Copyright (c) 2022 RightEnd
  *
@@ -25,19 +25,18 @@
 
 #include "chacharng/chacharng.hpp"
 
-	using SeedArray = std::array<std::uint8_t, SEED_SIZE_BYTES>;
+using SeedArray = std::array<std::uint8_t, SEED_SIZE_BYTES>;
 
-	int hexToInt(char hex);
+int hexToInt(char hex);
 
-	char intToHex(int num);
+char intToHex(int num);
 
-	bool parseHexString(const char *str, std::uint8_t *output, std::size_t outSize);
+bool parseHexString(const char *str, std::uint8_t *output, std::size_t outSize);
 
-	bool writeHexString(const char *str, std::uint8_t *output, std::size_t inSize);
+bool writeHexString(const char *str, std::uint8_t *output, std::size_t inSize);
 
-	void systemRandomFountain(void *output, std::size_t size);
+void systemRandomFountain(void *output, std::size_t size);
 
-	SeedArray generateSeed();	
-	
+SeedArray generateSeed();
 
 #endif  // _INCLUDED_SEEDHELPER_HPP_

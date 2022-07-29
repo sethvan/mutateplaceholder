@@ -3,8 +3,10 @@
  * score.hpp: Header to be used only by main.cpp to bolt things together
  *
  * - This can be thought of as a self-contained subprogram within the larger mutation program
- * - This manages, organizes, and glues together all the neccecary functionality to score the quality of the mutations TSV file in the context of a source code file
- * - The output is a pretty-printed list of lines in the source code file which have an insufficient number of mutation permutations followed by a general pretty-printed one-line summary of useful statistics about the source code file
+ * - This manages, organizes, and glues together all the neccecary functionality to score the quality of the mutations
+     TSV file in the context of a source code file
+ * - The output is a pretty-printed list of lines in the source code file which have an insufficient number of mutation
+     permutations followed by a general pretty-printed one-line summary of useful statistics about the source code file
  *
  * Copyright (c) 2022 RightEnd
  *
@@ -25,26 +27,25 @@
 #ifndef _INCLUDED_COMMANDS_SCORE_HPP
 #define _INCLUDED_COMMANDS_SCORE_HPP
 
-#include "common.hpp"
-#include "commands/cli-options.hpp"
-#include <cstdint>
 #include <cstddef>
+#include <cstdint>
 #include <cstdlib>
 #include <string>
 #include <vector>
 
-	
+#include "commands/cli-options.hpp"
+#include "common.hpp"
+
 std::string printScoreHelp(const char *indent);
 
 std::string printScoreHelp(std::string indent);
 
 std::string printScoreHelp(void);
 
-void validateScoreArgs(CLIOptions * opts, std::vector<std::string> * nonpositionals);
+void validateScoreArgs(CLIOptions *opts, std::vector<std::string> *nonpositionals);
 
-void doScoreAction(CLIOptions * opts, std::vector<std::string> * nonpositionals);
+void doScoreAction(CLIOptions *opts, std::vector<std::string> *nonpositionals);
 
-ParseArgvStatusCode execScore(CLIOptions * opts, std::vector<std::string> * nonpositionals);
+ParseArgvStatusCode execScore(CLIOptions *opts, std::vector<std::string> *nonpositionals);
 
-
-#endif//_INCLUDED_COMMANDS_SCORE_HPP
+#endif  //_INCLUDED_COMMANDS_SCORE_HPP

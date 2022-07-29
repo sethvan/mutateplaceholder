@@ -24,15 +24,14 @@
 #ifndef _INCLUDED_COMMANDS_CLI_PARSER_HPP
 #define _INCLUDED_COMMANDS_CLI_PARSER_HPP
 
+#include <string>
+#include <vector>
+
 #include "commands/cli-options.hpp"
 #include "common.hpp"
-#include <vector>
-#include <string>
 
+extern const char *STDIN_DASH_INIDCATOR;
 
-	
-extern const char * STDIN_DASH_INIDCATOR;
-	
-ParseArgvStatusCode parseArgs(CLIOptions * output, std::vector<std::string> * nonposes, int argc, const char **argv);
+ParseArgvStatusCode parseArgs(CLIOptions *output, std::vector<std::string> *nonposes, int argc, const char **argv);
 
-#endif//_INCLUDED_COMMANDS_CLI_PARSER_HPP
+#endif  //_INCLUDED_COMMANDS_CLI_PARSER_HPP

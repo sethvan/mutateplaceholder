@@ -22,7 +22,7 @@ target_include_directories( mutateplaceholder PRIVATE include )
 target_compile_features( mutateplaceholder PRIVATE cxx_std_17)
 target_link_options( mutateplaceholder PRIVATE -lpcre2-8 -fsanitize=address )
 target_compile_options( mutateplaceholder PRIVATE 
-	-Wall -Wextra -Werror -Wl,-z,defs  -lpcre2-8 -fwrapv
+	-Wall -Wextra -Werror -Wl,-z,defs  -lpcre2-8 -fwrapv -Og
 	$<$<CONFIG:Debug>:
 		-D_GLIBCXX_ASSERTIONS=1 -ggdb3 -fno-omit-frame-pointer -faas -fasynchronous-unwind-tables -fsanitize=address -fstack-protector-all 
 	>

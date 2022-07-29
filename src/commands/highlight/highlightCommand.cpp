@@ -6,8 +6,10 @@
  * - This manages, organizes, and glues together all the neccecary functionality for mutation highlighting
  * - There are three possible outputs:
  *   1. An interactive HTML file which shows a side-by-side comparison with useful information and line highlighting
- *   2. A textual represention of the source code file with escape sequence coloring and #needed/#wanted fraction beside the line number to the left
- *   3. A textual represention of the TSV mutation file with escape sequence coloring and #needed/#wanted fraction beside the line number to the left
+ *   2. A textual represention of the source code file with escape sequence coloring and #needed/#wanted fraction beside
+ the line number to the left
+ *   3. A textual represention of the TSV mutation file with escape sequence coloring and #needed/#wanted fraction
+ beside the line number to the left
  *
  * Copyright (c) 2022 RightEnd
  *
@@ -26,67 +28,57 @@
  */
 
 #include "commands/highlight/highlightCommand.hpp"
-#include "excepts.hpp"
+
 #include <sstream>
 
+#include "excepts.hpp"
 
-	
 std::string printHighlightHelp(const char *indent) {
-	std::ostringstream ss;
-	//              "--version                "
-	ss << indent << "-f, --format             Format of the output file. One of html, srctext, or tsvtext. Defaults to html\n";
+    std::ostringstream ss;
+    //              "--version                "
+    ss << indent
+       << "-f, --format             Format of the output file. One of html, srctext, or tsvtext. Defaults to html\n";
 
-	return ss.str();
+    return ss.str();
 };
 
-std::string printHighlightHelp(std::string indent) {
-	return printHighlightHelp( indent.c_str() );
+std::string printHighlightHelp(std::string indent) { return printHighlightHelp(indent.c_str()); }
+
+std::string printHighlightHelp(void) { return printHighlightHelp(""); }
+
+void validateHighlightArgs(CLIOptions *opts, std::vector<std::string> *nonpositionals) {
+    if (opts->hasSeed()) throw InvalidArgumentException("Cannot use the --seed/--read-seed options in highlight mode");
+    if (opts->hasMutCount()) throw InvalidArgumentException("Cannot use the --count option in highlight mode");
+    if (opts->hasMinMutCount()) throw InvalidArgumentException("Cannot use the --min-count option in highlight mode");
+    if (opts->hasMaxMutCount()) throw InvalidArgumentException("Cannot use the --max-count option in highlight mode");
+    if (opts->hasPenetration()) throw InvalidArgumentException("Cannot use the --penetration option in highlight mode");
+    if (1 < nonpositionals->size())
+        throw InvalidArgumentException("highlight mode does not accept extra non-positional arguments");
+
+    if (!opts->hasFormat()) { opts->setFormat("html"); }
+
+    // NOTE: this is the place to do file parsing and file syntax validation
 }
 
-std::string printHighlightHelp(void) {
-	return printHighlightHelp("");
-}
-	
-void validateHighlightArgs(CLIOptions * opts, std::vector<std::string> * nonpositionals) {
-	if (opts->hasSeed()) throw InvalidArgumentException("Cannot use the --seed/--read-seed options in highlight mode");
-	if (opts->hasMutCount()) throw InvalidArgumentException("Cannot use the --count option in highlight mode");
-	if (opts->hasMinMutCount()) throw InvalidArgumentException("Cannot use the --min-count option in highlight mode");
-	if (opts->hasMaxMutCount()) throw InvalidArgumentException("Cannot use the --max-count option in highlight mode");
-	if (opts->hasPenetration()) throw InvalidArgumentException("Cannot use the --penetration option in highlight mode");
-	if (1 < nonpositionals->size()) throw InvalidArgumentException("highlight mode does not accept extra non-positional arguments");
-		
-	if ( ! opts->hasFormat()) {
-		opts->setFormat( "html" );
-	}
+void doHighlightAction(CLIOptions *opts, std::vector<std::string> *nonpositionals) {
+    // TODO: actually do stuff here
+    (void)nonpositionals;  // silence unused warnings
 
-	// NOTE: this is the place to do file parsing and file syntax validation
-		
-		
+    switch (opts->getFormat()) {
+        case Format::HTML:
+            opts->putResOutput("<!doctype html>\n<html lang=\"en\">\n<body>\n<p>Hello world!</p>\n</body>\n</html>");
+            break;
+        case Format::SRCTEXT:
+            opts->putResOutput(opts->getSrcString());
+            break;
+        case Format::TSVTEXT:
+            opts->putResOutput(opts->getTsvString());
+            break;
+    }
 }
 
-void doHighlightAction(CLIOptions * opts, std::vector<std::string> * nonpositionals) {
-	// TODO: actually do stuff here
-	(void) nonpositionals; // silence unused warnings
-		
-	switch (opts->getFormat()) {
-		case Format::HTML:
-			opts->putResOutput( "<!doctype html>\n<html lang=\"en\">\n<body>\n<p>Hello world!</p>\n</body>\n</html>" );
-			break;
-		case Format::SRCTEXT:
-			opts->putResOutput( opts->getSrcString() );
-			break;
-		case Format::TSVTEXT:
-			opts->putResOutput( opts->getTsvString() );
-			break;
-	}
+ParseArgvStatusCode execHighlight(CLIOptions *opts, std::vector<std::string> *nonpositionals) {
+    validateHighlightArgs(opts, nonpositionals);
+    doHighlightAction(opts, nonpositionals);
+    return ParseArgvStatusCode::SUCCESS;
 }
-
-ParseArgvStatusCode execHighlight(CLIOptions * opts, std::vector<std::string> * nonpositionals) {
-	validateHighlightArgs(opts, nonpositionals);
-	doHighlightAction(opts, nonpositionals);
-	return ParseArgvStatusCode::SUCCESS;
-}
-
-
-
-

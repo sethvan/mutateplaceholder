@@ -25,28 +25,39 @@
  */
 
 #include "commands/mutate/mutateCommand.hpp"
-#include "excepts.hpp"
+
 #include <sstream>
 
-	
-std::string printMutateHelp(const char *indent) {
-	std::ostringstream ss;
-	//              "--version                "
-	ss << indent << "-s, --seed=HEXSTRING     Pass seed in as CLI argument. Defaults to generating a new seed\n";
-	ss << indent << "-r, --read-seed=FILE     Read PRNG seed from this file. Defaults to generating a new seed\n";
-	ss << indent << "-w, --write-seed=FILE    Write PRNG seed out to this file. Defaults to discarding the seed\n";
-	ss << indent << "-p, --penetration=NUMBER Nested group depth target level. Defaults to 1, meaning no bias towards nested groups\n";
-	ss << indent << "-c, --count=NUMBER       Number of mutations to perform. Defaults to a random number of mutations\n";
-	ss << indent << "    --min-count=NUMBER   Minimum number of mutations to perform. Defaults to 1\n";
-	ss << indent << "    --max-count=NUMBER   Maximum number of mutations to perform. Defaults to the available number of mutations\n";
-	ss << '\n';
-	ss << indent << "NOTE: The options --read-seed and --seed are mutally exclusive. You can't use both at the same time.\n";
-	ss << indent << "NOTE: The groups --count and --min-count/--max-count are mutally exclusive. You can't specify --count if you specify --min-count or "
-	   << "--max-count\n";
-	ss << indent << "NOTE: If both --input and --mutations are unspecified, then the first line from stdin is swallowed and used to separate --input and "
-	   <<"--mutations\n";
+#include "excepts.hpp"
 
-	return ss.str();
+std::string printMutateHelp(const char *indent) {
+    std::ostringstream ss;
+    //              "--version                "
+    ss << indent << "-s, --seed=HEXSTRING     Pass seed in as CLI argument. Defaults to generating a new seed\n";
+    ss << indent << "-r, --read-seed=FILE     Read PRNG seed from this file. Defaults to generating a new seed\n";
+    ss << indent << "-w, --write-seed=FILE    Write PRNG seed out to this file. Defaults to discarding the seed\n";
+    ss << indent
+       << "-p, --penetration=NUMBER Nested group depth target level. Defaults to 1, meaning no bias towards nested "
+          "groups\n";
+    ss << indent
+       << "-c, --count=NUMBER       Number of mutations to perform. Defaults to a random number of mutations\n";
+    ss << indent << "    --min-count=NUMBER   Minimum number of mutations to perform. Defaults to 1\n";
+    ss << indent
+       << "    --max-count=NUMBER   Maximum number of mutations to perform. Defaults to the available number of "
+          "mutations\n";
+    ss << '\n';
+    ss << indent
+       << "NOTE: The options --read-seed and --seed are mutally exclusive. You can't use both at the same time.\n";
+    ss << indent
+       << "NOTE: The groups --count and --min-count/--max-count are mutally exclusive. You can't specify --count if "
+          "you specify --min-count or "
+       << "--max-count\n";
+    ss << indent
+       << "NOTE: If both --input and --mutations are unspecified, then the first line from stdin is swallowed and used "
+          "to separate --input and "
+       << "--mutations\n";
+
+    return ss.str();
 };
 
 std::string printMutateHelp(std::string indent) { return printMutateHelp(indent.c_str()); }
@@ -54,47 +65,41 @@ std::string printMutateHelp(std::string indent) { return printMutateHelp(indent.
 std::string printMutateHelp(void) { return printMutateHelp(""); }
 
 void validateMutateArgs(CLIOptions *opts, std::vector<std::string> *nonpositionals) {
-	if (opts->hasFormat())
-		throw InvalidArgumentException("Cannot use the --format option in mutate mode");
-	if (1 < nonpositionals->size())
-		throw InvalidArgumentException("mutate mode does not accept extra non-positional arguments");
-	if (!opts->hasPenetration()) {
-		opts->setPenetration("0");
-	}
-	// TSV parsing and validation performed by MutationsRetriever class in doAction()
-	// mutCount setting and seed hex validation or (if needed) seed generation performed by MutationsSelector class in doAction()
-	// 
+    if (opts->hasFormat()) throw InvalidArgumentException("Cannot use the --format option in mutate mode");
+    if (1 < nonpositionals->size())
+        throw InvalidArgumentException("mutate mode does not accept extra non-positional arguments");
+    if (!opts->hasPenetration()) { opts->setPenetration("0"); }
+    // TSV parsing and validation performed by MutationsRetriever class in doAction()
+    // mutCount setting and seed hex validation or (if needed) seed generation performed by MutationsSelector class in
+    // doAction()
+    //
 }
 
 void doMutateAction(CLIOptions *opts, std::vector<std::string> *nonpositionals) {
-	// TODO: actually do stuff here
-	(void)nonpositionals;  // silence unused warnings
+    // TODO: actually do stuff here
+    (void)nonpositionals;  // silence unused warnings
 
-	std::istringstream tsvStream{opts->getTsvString()};
-	if(!tsvStream) throw IOErrorException("I/O error opening TSV File");
-	// std::istringstream srcStream{opts->getSrcString()};
-	// if(!srcStream) throw IOErrorException("I/O error opening Source File");
-	// std::ostringstream outputStream;
-    
-	MutationsRetriever mRetriever{tsvStream};
-	MutationsSelector mSelector{opts, mRetriever.getPossibleMutations()};
-	std::string outputString;
-	Mutator mutator{opts->getSrcString(), outputString, mSelector.getSelectedMutations(), opts};
+    std::istringstream tsvStream{opts->getTsvString()};
+    if (!tsvStream) throw IOErrorException("I/O error opening TSV File");
+    // std::istringstream srcStream{opts->getSrcString()};
+    // if(!srcStream) throw IOErrorException("I/O error opening Source File");
+    // std::ostringstream outputStream;
 
-	opts->putResOutput(outputString);
+    MutationsRetriever mRetriever{tsvStream};
+    MutationsSelector mSelector{opts, mRetriever.getPossibleMutations()};
+    std::string outputString;
+    Mutator mutator{opts->getSrcString(), outputString, mSelector.getSelectedMutations(), opts};
 
-	// std::cout << mutator.mutatedLines.size() << " mutations have been successfully applied across " 
-	// 		<< mutator.mutatedLineCount << " lines" << std::endl;
+    opts->putResOutput(outputString);
 
-	if(opts->seedNeedsExporting()) {
-		opts->putSeedOutput(opts->getSeed());
-	}
+    // std::cout << mutator.mutatedLines.size() << " mutations have been successfully applied across "
+    // 		<< mutator.mutatedLineCount << " lines" << std::endl;
+
+    if (opts->seedNeedsExporting()) { opts->putSeedOutput(opts->getSeed()); }
 }
 
 ParseArgvStatusCode execMutate(CLIOptions *opts, std::vector<std::string> *nonpositionals) {
-	validateMutateArgs(opts, nonpositionals);
-	doMutateAction(opts, nonpositionals);
-	return ParseArgvStatusCode::SUCCESS;
+    validateMutateArgs(opts, nonpositionals);
+    doMutateAction(opts, nonpositionals);
+    return ParseArgvStatusCode::SUCCESS;
 }
-
-

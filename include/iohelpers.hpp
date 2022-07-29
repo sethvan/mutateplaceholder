@@ -22,33 +22,33 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-
 #ifndef _INCLUDED_IOHELPERS_HPP
 #define _INCLUDED_IOHELPERS_HPP
 
-#include "common.hpp"
-#include <stddef.h>
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdio.h>
-#include <string>
+
 #include <optional>
+#include <string>
+
+#include "common.hpp"
 
 #ifndef EOK
 // just in case
-#  define EOK 0
+#define EOK 0
 #endif
 
 constexpr size_t IO_BUFF_SIZE = 16384;
 
-std::string readWholeFileIntoString(std::FILE * handle, const char * errMsg);
-	
-void initializeSrcTsvTogetherFromStdin(std::optional<std::string> * srcString, std::optional<std::string> * tsvString);
+std::string readWholeFileIntoString(std::FILE* handle, const char* errMsg);
 
-void writeStringToFileHandle(std::FILE * handle, std::string text);
-	
-void readSeedFileIntoString(std::FILE * seedInput, std::optional<std::string> * output);
-	
-void closeAndNullifyFileHandle(std::FILE ** handle);
+void initializeSrcTsvTogetherFromStdin(std::optional<std::string>* srcString, std::optional<std::string>* tsvString);
 
+void writeStringToFileHandle(std::FILE* handle, std::string text);
 
-#endif//_INCLUDED_IOHELPERS_HPP
+void readSeedFileIntoString(std::FILE* seedInput, std::optional<std::string>* output);
+
+void closeAndNullifyFileHandle(std::FILE** handle);
+
+#endif  //_INCLUDED_IOHELPERS_HPP
