@@ -113,7 +113,15 @@ void MutationsSelector::setSeedArray() {
 }
 
 void MutationsSelector::setSelectedMutCount() {
-    if (opts->hasMutCount()) { selectedMutCount = opts->getMutCount(); }
+    if (opts->hasMutCount()) {
+        selectedMutCount = std::min(opts->getMutCount(), static_cast<int>(pmVecSize));
+        if (opts->getMutCount() > static_cast<int>(pmVecSize)) {
+            std::ostringstream os;
+            os << "--count=NUMBER entered exceeded possible amount contained in TSV, maximum available count of "
+               << selectedMutCount << " from TSV was instead used.";
+            opts->addWarning(os.str());
+        }
+    }
     else {
         int minMutCount = opts->hasMinMutCount() ? opts->getMinMutCount() : 1;
         int maxMutCount = opts->hasMaxMutCount() ? opts->getMaxMutCount() : pmVecSize + 1;

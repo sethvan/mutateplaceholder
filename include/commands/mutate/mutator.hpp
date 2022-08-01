@@ -60,15 +60,36 @@ class Mutator {  // Made class for now, may change
 
     void regexReplace(std::string& subject, const SelectedMutation& sm);
 
-    bool isMultilineString(std::string_view str) const;
+    bool isMultilineStringView(std::string_view sv) const;
 
     bool lineEdgesAreGood(std::string::iterator& begin, std::string::iterator& end, const std::string& str);
 
     bool substringIsMatch(const std::string& subject, std::string::iterator it, const std::string& str);
 
-    bool wholeLineDoesMatch();
+    void checkPermutation(const SelectedMutation& sm, bool addIndentation, std::string& permutationString,
+                          const std::string& indent);
 
-    std::vector<std::string> separateLinesIntoVector(std::string_view);
+    bool checkEdgesAndReplaceSuccessful(std::string::iterator& begin, std::string::iterator& end,
+                                        const std::string& patternString, std::string& subject,
+                                        const SelectedMutation& sm, std::string& permutationString, size_t& pos,
+                                        size_t lengthToRemove, int& matches);
+
+    void checkCountOfMatches(int matches, const SelectedMutation& sm);
+
+    bool lines3AndOnAreGood(bool addIndentation, int indentation, const std::string& subject,
+                            std::string::iterator& begin, std::string::iterator& end,
+                            std::vector<std::string>::iterator& linesIt,
+                            const std::vector<std::string>::iterator& vecEnd);
+
+    bool wholeSublineOfMultilineIsMatch(bool addIndentation, int indentation, const std::string& subject,
+                                        std::string::iterator& begin, std::string::iterator& end,
+                                        const std::string& str);
+
+    bool line2IsGood(const std::string& subject, std::string::iterator& end,
+                     std::vector<std::string>::iterator& linesIt, int indentation, bool& addIndentation,
+                     std::string::iterator& begin);
+
+    std::vector<std::string> separateLinesIntoVector(std::string_view sv);
 
     std::string removeSrcStrComments();
 

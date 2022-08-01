@@ -310,11 +310,11 @@ std::string CLIOptions::getWarnings() {
         os << "}\n";
     }
     if (warnings.size()) {
-        for (const auto &str : warnings) { os << str << "\n   "; }
+        for (const auto &str : warnings) { os << "   " << str << std::endl; }
         os << std::endl;
     }
     if ((os.str().size())) {
-        std::string retVal{"Warnings:\n   "};
+        std::string retVal{"\x1B[33mWarnings:\x1B[0m\n   "};
         retVal += os.str();
         return retVal;
     }
