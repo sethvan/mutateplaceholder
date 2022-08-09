@@ -43,10 +43,10 @@ Mutator::Mutator(std::string _sourceString, std::string& _outputString, Selected
 }
 
 void Mutator::mutate() {
-    std::string strippedStr = removeSrcStrComments();
+    std::string strippedStr = sourceString;  // removeSrcStrComments();
     for (const auto& sm : selectedMutations) {
         if (sm.data.isRegex) {
-            // regexReplace(sourceString, sm);
+            regexReplace(strippedStr, sm);
             std::cout << "Is regex, ";
         }
         else if (isMultilineStringView(sm.pattern)) {
@@ -80,12 +80,33 @@ void Mutator::replaceStringInPlace(std::string& subject, const SelectedMutation&
     checkCountOfMatches(matches, sm);
 }
 
-// void Mutator::regexReplace(std::string& subject, const SelectedMutation& sm) {
-// 	size_t index = sm.mutation.find_first_of('/');
-// 	std::string pattern{sm.pattern, 0, index};
-// 	std::string modifiers{sm.pattern, index+1, sm.pattern.size()-1};
-// 	subject = jp::Regex(pattern).replace(subject, sm.mutation.data(), modifiers);
-// }
+void Mutator::regexReplace(std::string& subject, const SelectedMutation& sm) {
+    std::string defaultFlags("AFgnm");
+    size_t index = sm.pattern.find_last_of('/');
+    if (index == std::string::npos) {
+        std::ostringstream os;
+        os << "Regex pattern cell in row beginning on line number " << sm.data.lineNumber << " is missing final \'/\'."
+           << std::endl;
+        throw TSVParsingException(os.str());
+    }
+    std::string pattern{sm.pattern, 0, index};
+    std::string userModifierInput(sm.pattern.begin() + index + 1, sm.pattern.end());
+    std::string modifiers;
+    index = userModifierInput.find_first_of('-');
+    if (index != std::string::npos) {
+        std::string additionalModFlags(userModifierInput, 0, index);
+        std::string flagsToBeRemoved(userModifierInput.begin() + index + 1, userModifierInput.end());
+        if (additionalModFlags.size()) modifiers.append(additionalModFlags);
+        for (const auto& c : defaultFlags) {
+            if ((index = flagsToBeRemoved.find_first_of(c)) == std::string::npos) modifiers.push_back(c);
+        }
+    }
+    else {
+        modifiers = userModifierInput + defaultFlags;
+    }
+
+    subject = jp::Regex(pattern).replace(subject, sm.mutation.data(), modifiers);
+}
 
 // This is just a temporary stand in method to use until we have better regex patterns
 // So that we can continue developing meanwhile

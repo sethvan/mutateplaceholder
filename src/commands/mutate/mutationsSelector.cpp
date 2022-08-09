@@ -38,7 +38,7 @@
 #include "excepts.hpp"
 
 #define OFFSET \
-    ((it->data.depth ? it->data.depth - 1 : 0) + it->data.isOptional + it->data.isNewLined + it->data.mustPass)
+    ((it->data.depth ? it->data.depth - 1 : 0) + it->data.isOptional + it->data.isNewLined + it->data.mustPass + it->data.isRegex)
 
 MutationsSelector::MutationsSelector(CLIOptions* _opts, PossibleMutVec& _possibleMutations)
     : opts(_opts), possibleMutations(_possibleMutations), pmVecSize{possibleMutations.size()} {}
