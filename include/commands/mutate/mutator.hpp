@@ -62,7 +62,8 @@ class Mutator {  // Made class for now, may change
 
     bool isMultilineStringView(std::string_view sv) const;
 
-    bool lineEdgesAreGood(std::string::iterator& begin, std::string::iterator& end, const std::string& str);
+    bool lineEdgesAreGood(std::string::iterator& begin, std::string::iterator& end, const std::string& str,
+                          const std::string& subject);
 
     bool substringIsMatch(const std::string& subject, std::string::iterator it, const std::string& str);
 

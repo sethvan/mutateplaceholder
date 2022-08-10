@@ -127,8 +127,7 @@ static ParseArgvStatusCode parseArgvAndPerformAction(int argc, const char **argv
         if (warnings.size()) { std::cerr << warnings; }
         return status;
     } catch (const std::out_of_range &ex) {
-        std::cerr << PROGRAM_NAME ": '" << sanitizeOutputMessage(actionName)
-                  << "' is not a valid " PROGRAM_NAME " command.\n";
+        std::cerr << "Out of range error: " << ex.what() << std::endl;
         return ParseArgvStatusCode::ERROR;
     }
 }
