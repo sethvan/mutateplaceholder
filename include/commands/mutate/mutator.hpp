@@ -24,7 +24,9 @@
 #include <iostream>
 #include <istream>
 #include <ostream>
+#include <set>
 #include <string>
+#include <tuple>
 #include <unordered_map>
 
 #include "../cli-options.hpp"
@@ -70,10 +72,10 @@ class Mutator {  // Made class for now, may change
     void checkPermutation(const SelectedMutation& sm, bool addIndentation, std::string& permutationString,
                           const std::string& indent);
 
-    bool checkEdgesAndReplaceSuccessful(std::string::iterator& begin, std::string::iterator& end,
-                                        const std::string& patternString, std::string& subject,
-                                        const SelectedMutation& sm, std::string& permutationString, size_t& pos,
-                                        size_t lengthToRemove, int& matches);
+    bool edgesGoodAndReplacementSuccessful(std::string::iterator& begin, std::string::iterator& end,
+                                           const std::string& patternString, std::string& subject,
+                                           const SelectedMutation& sm, std::string& permutationString, size_t& pos,
+                                           size_t lengthToRemove, int& matches);
 
     void checkCountOfMatches(int matches, const SelectedMutation& sm);
 
@@ -89,6 +91,11 @@ class Mutator {  // Made class for now, may change
     bool line2IsGood(const std::string& subject, std::string::iterator& end,
                      std::vector<std::string>::iterator& linesIt, int indentation, bool& addIndentation,
                      std::string::iterator& begin);
+
+    std::tuple<std::string, std::string> getPatternAndModifiers(size_t index, const SelectedMutation& sm);
+
+    std::set<std::string> getMatches(const std::string& pattern, const std::string& subject,
+                                     const std::string& modifiers);
 
     std::vector<std::string> separateLinesIntoVector(std::string_view sv);
 

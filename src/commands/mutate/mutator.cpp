@@ -47,16 +47,12 @@ Mutator::Mutator(std::string _sourceString, std::string& _outputString, Selected
 void Mutator::mutate() {
     std::string strippedStr = removeSrcStrComments();
     for (const auto& sm : selectedMutations) {
-        if (sm.data.isRegex) {
+        if (sm.data.isRegex)
             regexReplace(strippedStr, sm);
-            std::cout << "Is regex, ";
-        }
-        else if (isMultilineStringView(sm.pattern)) {
+        else if (isMultilineStringView(sm.pattern))
             multilineReplace(strippedStr, sm);
-        }
-        else {
+        else
             replaceStringInPlace(strippedStr, sm);
-        }
     }
     outputString = strippedStr;
 }
@@ -75,15 +71,14 @@ void Mutator::replaceStringInPlace(std::string& subject, const SelectedMutation&
 
         while (*(begin - 1) != '\n') --begin;
 
-        if (!checkEdgesAndReplaceSuccessful(begin, end, patternString, subject, sm, permutationString, pos,
-                                            lengthToRemove, matches))
+        if (!edgesGoodAndReplacementSuccessful(begin, end, patternString, subject, sm, permutationString, pos,
+                                               lengthToRemove, matches))
             INCREMENT_POS_AND_CONTINUE;
     }
     checkCountOfMatches(matches, sm);
 }
 
 void Mutator::regexReplace(std::string& subject, const SelectedMutation& sm) {
-    std::string defaultFlags("AFgnm");
     size_t index = sm.pattern.find_last_of('/');
     if (index == std::string::npos) {
         std::ostringstream os;
@@ -91,40 +86,15 @@ void Mutator::regexReplace(std::string& subject, const SelectedMutation& sm) {
            << std::endl;
         throw TSVParsingException(os.str());
     }
-    std::string pattern{sm.pattern, 0, index};
-    std::string userModifierInput(sm.pattern.begin() + index + 1, sm.pattern.end());
-    std::string modifiers;
-    index = userModifierInput.find_first_of('-');
-    if (index != std::string::npos) {
-        std::string additionalModFlags(userModifierInput, 0, index);
-        std::string flagsToBeRemoved(userModifierInput.begin() + index + 1, userModifierInput.end());
-        if (additionalModFlags.size()) modifiers.append(additionalModFlags);
-        for (const auto& c : defaultFlags) {
-            if ((index = flagsToBeRemoved.find_first_of(c)) == std::string::npos) modifiers.push_back(c);
-        }
-    }
-    else {
-        modifiers = userModifierInput + defaultFlags;
-    }
 
-    jp::VecNum vec_num;
-    jp::Regex re(pattern);
-    jp::RegexMatch rr;
-    rr.setRegexObject(&re).setSubject(&subject).addModifier(modifiers).setNumberedSubstringVector(&vec_num).match();
+    auto [pattern, modifiers] = getPatternAndModifiers(index, sm);
+    std::set<std::string> matches = getMatches(pattern, subject, modifiers);
 
-    std::set<std::string> strSet;
-    for (auto& vec : vec_num) {
-        for (auto& n : vec) strSet.insert(n);
-    }
-
-    std::string mut;
-    SelectedLineInfo data = sm.data;
-    for (auto& str : strSet) {
-        mut = str;
+    for (const auto& str : matches) {
         std::string_view regexPattern(str);
-        mut = jp::Regex(pattern).replace(mut, sm.mutation.data(), modifiers);
+        std::string mut = jp::Regex(pattern).replace(str, sm.mutation.data(), modifiers);
         std::string_view regexMutation(mut);
-        SelectedMutation regexSm(regexPattern, regexMutation, data);
+        SelectedMutation regexSm(regexPattern, regexMutation, sm.data);
         if (regexSm.pattern.size()) {
             if (isMultilineStringView(regexSm.pattern))
                 multilineReplace(subject, regexSm);
@@ -187,8 +157,8 @@ void Mutator::multilineReplace(std::string& subject, const SelectedMutation& sm)
         std::string permutationString;
 
         if (substringIsMatch(subject, startPos, patternString)) {
-            if (!checkEdgesAndReplaceSuccessful(begin, end, patternString, subject, sm, permutationString, pos,
-                                                lengthToRemove, matches))
+            if (!edgesGoodAndReplacementSuccessful(begin, end, patternString, subject, sm, permutationString, pos,
+                                                   lengthToRemove, matches))
                 ++pos;
             continue;
         }
@@ -261,15 +231,15 @@ void Mutator::checkPermutation(const SelectedMutation& sm, bool addIndentation, 
     }
 }
 
-bool Mutator::checkEdgesAndReplaceSuccessful(std::string::iterator& begin, std::string::iterator& end,
-                                             const std::string& patternString, std::string& subject,
-                                             const SelectedMutation& sm, std::string& permutationString, size_t& pos,
-                                             size_t lengthToRemove, int& matches) {
+bool Mutator::edgesGoodAndReplacementSuccessful(std::string::iterator& begin, std::string::iterator& end,
+                                                const std::string& patternString, std::string& subject,
+                                                const SelectedMutation& sm, std::string& permutationString, size_t& pos,
+                                                size_t lengthToRemove, int& matches) {
+    std::string indent(begin, end);
     if (!lineEdgesAreGood(begin, end, patternString, subject)) return false;
 
     if (sm.data.isNewLined) {
-        std::string indent(begin, end);
-        permutationString += indent + sm.mutation.data();
+        permutationString = indent + sm.mutation.data();
         permutationString.push_back('\n');
         if (end == subject.end()) {
             subject.push_back('\n');
@@ -326,4 +296,39 @@ bool Mutator::line2IsGood(const std::string& subject, std::string::iterator& end
     else if (!lineEdgesAreGood(begin, end, *linesIt, subject))
         return false;
     return true;
+}
+
+std::tuple<std::string, std::string> Mutator::getPatternAndModifiers(size_t index, const SelectedMutation& sm) {
+    std::string defaultFlags("AFgnm");
+    std::string pattern{sm.pattern, 0, index};
+    std::string userModifierInput(sm.pattern.begin() + index + 1, sm.pattern.end());
+    std::string modifiers;
+    index = userModifierInput.find_first_of('-');
+    if (index != std::string::npos) {
+        std::string additionalModFlags(userModifierInput, 0, index);
+        std::string flagsToBeRemoved(userModifierInput.begin() + index + 1, userModifierInput.end());
+        if (additionalModFlags.size()) modifiers.append(additionalModFlags);
+        for (const auto& c : defaultFlags) {
+            if ((index = flagsToBeRemoved.find_first_of(c)) == std::string::npos) modifiers.push_back(c);
+        }
+    }
+    else {
+        modifiers = userModifierInput + defaultFlags;
+    }
+    return {pattern, modifiers};
+}
+
+std::set<std::string> Mutator::getMatches(const std::string& pattern, const std::string& subject,
+                                          const std::string& modifiers) {
+    jp::VecNum vec_num;
+    jp::Regex re(pattern);
+    jp::RegexMatch rr;
+    rr.setRegexObject(&re).setSubject(&subject).addModifier(modifiers).setNumberedSubstringVector(&vec_num).match();
+
+    std::set<std::string> strSet;
+    for (auto& vec : vec_num) {
+        for (auto& n : vec) strSet.insert(n);
+    }
+
+    return strSet;
 }

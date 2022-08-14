@@ -60,7 +60,7 @@ struct SelectedMutation {
     std::string_view mutation;
     SelectedLineInfo data;
 
-    SelectedMutation(std::string_view _pattern, std::string_view _mutation, SelectedLineInfo& info)
+    SelectedMutation(std::string_view _pattern, std::string_view _mutation, SelectedLineInfo info)
         : pattern{_pattern}, mutation{_mutation}, data{info} {}
 };
 using SelectedMutVec = std::vector<SelectedMutation>;
