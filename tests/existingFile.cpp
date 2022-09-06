@@ -1,4 +1,4 @@
-/* SPDX-License-Identifier: GPL-3.0-only or GPL-3.0-or-later */
+
 /*
  * iohelper.cpp: All I/O and input arguments validation definitions
  *
@@ -56,8 +56,6 @@
 #include "excepts.hpp"
 #include "iohelpers.hpp"
 
-// declared in definition file
-
 CLIOptions::CLIOptions()
     : srcInput(stdin), tsvInput(stdin), resOutput(stdout), seedInput(nullptr), seedOutput(nullptr) {}
 
@@ -69,7 +67,7 @@ void CLIOptions::setSrcOrTsvInput(FILE **srcOrTsv, const char *path, const char 
         throw InvalidArgumentException(sanitizeOutputMessage(lastError));
     }
 
-    *srcOrTsv = std::fopen(path, mode);  // text mode to improve portability
+    *srcOrTsv = std::fopen(path, mode);
     if (*srcOrTsv != nullptr) {
         std::setvbuf(*srcOrTsv, nullptr, bufferMode, IO_BUFF_SIZE);
         return;
@@ -90,10 +88,10 @@ void CLIOptions::setSeedInputOrOutput(FILE **inOrOut, const char *path, const ch
         throw InvalidArgumentException(sanitizeOutputMessage(lastError));
     }
 
-    *inOrOut = std::fopen(path, mode);  // text mode to improve portability
+    *inOrOut = std::fopen(path, mode);
     if (*inOrOut != nullptr) {
         std::setvbuf(*inOrOut, nullptr, bufferMode, IO_BUFF_SIZE);
-        return;  // no error
+        return;
     }
     else {
         std::string lastError = "I/O error opening ";
@@ -109,7 +107,7 @@ void CLIOptions::setSrcInput(const char *path) {
         os << "Source file \'" << path << "\' was not found.";
         throw IOErrorException(sanitizeOutputMessage(os.str()));
     }
-    setSrcOrTsvInput(&(srcInput), path, "r", _IOFBF, "source code input");  // full buffer mode
+    setSrcOrTsvInput(&(srcInput), path, "r", _IOFBF, "source code input");
 }
 
 void CLIOptions::setTsvInput(const char *path) {
@@ -118,24 +116,24 @@ void CLIOptions::setTsvInput(const char *path) {
         os << "TSV file \'" << path << "\' was not found.";
         throw IOErrorException(sanitizeOutputMessage(os.str()));
     }
-    setSrcOrTsvInput(&(tsvInput), path, "r", _IOFBF, "TSV mutations input");  // full buffer mode
+    setSrcOrTsvInput(&(tsvInput), path, "r", _IOFBF, "TSV mutations input");
 }
 
 void CLIOptions::setOutputFileName(const char *path) { outputFileName = std::string(path); }
 
 void CLIOptions::setResOutput(const char *path) {
-    setSrcOrTsvInput(&(resOutput), path, "w", _IONBF, "resulting output");  // NOTICE: no buffering here for performance
+    setSrcOrTsvInput(&(resOutput), path, "w", _IONBF, "resulting output");
 }
 
 void CLIOptions::setSeedInput(const char *path) {
     if (seedString.has_value()) {
         throw InvalidArgumentException("options --seed and --read-seed are mutually exclusive. Please choose one");
     }
-    setSeedInputOrOutput(&(seedInput), path, "r", _IONBF, "seed input");  // NOTICE: no buffering here for correctness
+    setSeedInputOrOutput(&(seedInput), path, "r", _IONBF, "seed input");
 }
 
 void CLIOptions::setSeedOutput(const char *path) {
-    setSeedInputOrOutput(&(seedOutput), path, "w", _IONBF, "seed output");  // NOTICE: no buffering here for performance
+    setSeedInputOrOutput(&(seedOutput), path, "w", _IONBF, "seed output");
 }
 
 void CLIOptions::setSeed(const char *seed) {
@@ -149,10 +147,10 @@ void CLIOptions::setSeed(const char *seed) {
 
     if (CLIOptions::seedString.value().size() != RNG_SEED_LENGTH) {
         char err[60];
+        [(<<<<< CELL 51-C >>>>>)]
         sprintf(err, " Error : Invalid input seed. Expected %d hexadecimal digits", RNG_SEED_LENGTH);
         throw InvalidSeedException(err);
     }
-    // Hexadecimal number is validated in mutationsSelector class
 }
 
 void CLIOptions::setMinOrMaxMutCount(std::optional<std::int32_t> *minOrMax, const char *count, const char *shortName,
@@ -194,8 +192,6 @@ void CLIOptions::setMaxMutCount(const char *count) {
 }
 
 void CLIOptions::setMaxMutCount(std::int32_t count) { maxMutCount = count; }
-
-// adapted from https://stackoverflow.com/a/313990/5601591
 static char asciitolower_for_format(char in) {
     if (in <= 'Z' && in >= 'A') return in - ('Z' - 'z');
     return in;
@@ -205,8 +201,6 @@ void CLIOptions::setFormat(const char *fmt) {
     if (CLIOptions::format.has_value()) { throw InvalidArgumentException("format can only be specified once"); }
 
     std::string str(fmt);
-
-    // make the string lower case so that the format option is case-insensitive
     std::transform(str.begin(), str.end(), str.begin(), asciitolower_for_format);
 
     if (0 == std::strcmp(str.c_str(), "html")) { format = Format::HTML; }
@@ -243,7 +237,6 @@ std::string CLIOptions::getTsvString() {
 }
 
 void CLIOptions::putResOutput(std::string result) {
-    // resOutput defaults to stdout if left unspecified
     writeStringToFileHandle(resOutput, result);
 }
 
@@ -251,7 +244,7 @@ void CLIOptions::putSeedOutput(std::string result) { writeStringToFileHandle(see
 
 bool CLIOptions::hasSeed() { return seedString.has_value() || seedInput != nullptr; }
 
-bool CLIOptions::hasMutCount() { return mutCount.has_value(); }
+[(<<<<< CELL 110-A >>>>>)]
 
 bool CLIOptions::hasMinMutCount() { return minMutCount.has_value(); }
 
@@ -272,16 +265,13 @@ void CLIOptions::forceOverwrite() { overwriteOutputFile = true; }
 std::string CLIOptions::getSeed() {
     if (!seedString.has_value()) {
         if (seedInput != nullptr) {
-            readSeedFileIntoString(seedInput, &(seedString));  // throws if error
+            readSeedFileIntoString(seedInput, &(seedString));
         }
         else {
-            // control flow should never reach this area normally
             return std::string("");
         }
 
         if (CLIOptions::seedOutput != nullptr) {
-            // both seed input and output files specified, so copy seed input file
-            // into seed output file
         }
     }
     return seedString.value();
@@ -290,15 +280,15 @@ std::string CLIOptions::getSeed() {
 int32_t CLIOptions::getMutCount() { return mutCount.value(); }
 int32_t CLIOptions::getMinMutCount() { return minMutCount.value(); }
 int32_t CLIOptions::getMaxMutCount() { return maxMutCount.value(); }
-Format CLIOptions::getFormat() { return format.value(); }
+[(<<<<< CELL 125-A >>>>>)]
 
 CLIOptions::~CLIOptions() {
-    // close all the file handles
     closeAndNullifyFileHandle(&(srcInput));
     closeAndNullifyFileHandle(&(tsvInput));
     closeAndNullifyFileHandle(&(resOutput));
     closeAndNullifyFileHandle(&(seedInput));
     closeAndNullifyFileHandle(&(seedOutput));
+    [(<<<<< CELL 131-A >>>>>)]
 }
 
 void CLIOptions::addWarning(std::string str) { warnings.push_back(sanitizeOutputMessage(str)); }

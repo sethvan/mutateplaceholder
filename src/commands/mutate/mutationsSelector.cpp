@@ -37,8 +37,9 @@
 
 #include "excepts.hpp"
 
-#define OFFSET \
-    ((it->data.depth ? it->data.depth - 1 : 0) + it->data.isOptional + it->data.isNewLined + it->data.mustPass + it->data.isRegex)
+#define OFFSET                                                                                                   \
+    ((it->data.depth ? it->data.depth - 1 : 0) + it->data.isOptional + it->data.isNewLined + it->data.mustPass + \
+     it->data.isRegex)
 
 MutationsSelector::MutationsSelector(CLIOptions* _opts, PossibleMutVec& _possibleMutations)
     : opts(_opts), possibleMutations(_possibleMutations), pmVecSize{possibleMutations.size()} {}
@@ -142,9 +143,9 @@ void MutationsSelector::selectPermutation(size_t index, PossibleMutVec::iterator
     while ((bytes = isWhiteSpace((patIt + offset), end))) offset += bytes;
     endPos = lastNonWhiteSpace(patIt, end);
 
-    std::string_view pattern(it->pattern.c_str() + offset,
-                             (endPos == std::string::npos ? it->pattern.size() : endPos + 1) - offset);
-    std::string_view mutation = it->permutations[index];
+    std::string pattern(it->pattern.c_str() + offset,
+                        (endPos == std::string::npos ? it->pattern.size() : endPos + 1) - offset);
+    std::string mutation = it->permutations[index];
     selectedMutations.emplace_back(pattern, mutation, it->data);
     // printDatos();
 }

@@ -47,7 +47,6 @@ void validateScoreArgs(CLIOptions *opts, std::vector<std::string> *nonpositional
     if (opts->hasMutCount()) throw InvalidArgumentException("Cannot use the --count option in score mode");
     if (opts->hasMinMutCount()) throw InvalidArgumentException("Cannot use the --min-count option in score mode");
     if (opts->hasMaxMutCount()) throw InvalidArgumentException("Cannot use the --max-count option in score mode");
-    if (opts->hasPenetration()) throw InvalidArgumentException("Cannot use the --penetration option in score mode");
     if (opts->hasFormat()) throw InvalidArgumentException("Cannot use the --format option in score mode");
     if (1 < nonpositionals->size())
         throw InvalidArgumentException("score mode does not accept extra non-positional arguments");

@@ -65,13 +65,16 @@ class CLIOptions {
     std::optional<std::string> seedString;
     std::optional<std::string> srcString;
     std::optional<std::string> tsvString;
+    std::optional<std::string> outputFileName;
     // std::optional<std::string> resString;
 
     std::optional<std::int32_t> mutCount;
     std::optional<std::int32_t> minMutCount;
     std::optional<std::int32_t> maxMutCount;
-    std::optional<std::int32_t> penetration;
+
     std::optional<Format> format;
+
+    bool overwriteOutputFile = false;
 
     std::vector<std::string> warnings;
     std::vector<int> noMatchLines;
@@ -86,6 +89,7 @@ class CLIOptions {
     CLIOptions();
 
     // These functions throw exceptions when there is an error
+    void setOutputFileName(const char* path);
     void setSrcInput(const char* path);
     void setTsvInput(const char* path);
     void setResOutput(const char* path);
@@ -97,7 +101,8 @@ class CLIOptions {
     void setMinMutCount(std::int32_t count);
     void setMaxMutCount(const char* count);
     void setMaxMutCount(std::int32_t count);
-    void setPenetration(const char* count);
+    void forceOverwrite();
+
     void setFormat(const char* fmt);
     std::string getSrcString();
     std::string getTsvString();
@@ -109,10 +114,12 @@ class CLIOptions {
     bool hasMutCount();
     bool hasMinMutCount();
     bool hasMaxMutCount();
-    bool hasPenetration();
+    bool hasOutputFileName();
+
     bool hasFormat();
 
     bool seedNeedsExporting();
+    bool okToOverwriteOutputFile();
 
     // These will throw a std::bad_optional_access error if no value was
     // defined/provided, so be sure to check the hasValue() methods first
@@ -120,7 +127,8 @@ class CLIOptions {
     int32_t getMutCount();
     int32_t getMinMutCount();
     int32_t getMaxMutCount();
-    int32_t getPenetration();
+    const char* getOutputFileName();
+
     Format getFormat();
 
     void addWarning(std::string str);

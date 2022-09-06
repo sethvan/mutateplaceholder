@@ -36,12 +36,12 @@
 struct MutatedLine {
     int lineNumber;
     size_t lineIndex;  // where in line the pattern starts
-    std::string_view mutation;
+    std::string mutation;
 
-    MutatedLine(int _lineNumber, size_t _lineIndex, std::string_view _mutation)
+    MutatedLine(int _lineNumber, size_t _lineIndex, std::string _mutation)
         : lineNumber{_lineNumber}, lineIndex{_lineIndex}, mutation{_mutation} {}
 };
-using MutatedLinesMap = std::unordered_map<std::string_view, std::vector<MutatedLine>>;
+using MutatedLinesMap = std::unordered_map<std::string, std::vector<MutatedLine>>;
 
 class Mutator {  // Made class for now, may change
 
@@ -62,7 +62,7 @@ class Mutator {  // Made class for now, may change
 
     void regexReplace(std::string& subject, const SelectedMutation& sm);
 
-    bool isMultilineStringView(std::string_view sv) const;
+    bool isMultilineString(std::string str) const;
 
     bool lineEdgesAreGood(std::string::iterator& begin, std::string::iterator& end, const std::string& str,
                           const std::string& subject);
@@ -97,7 +97,7 @@ class Mutator {  // Made class for now, may change
     std::set<std::string> getMatches(const std::string& pattern, const std::string& subject,
                                      const std::string& modifiers);
 
-    std::vector<std::string> separateLinesIntoVector(std::string_view sv);
+    std::vector<std::string> separateLinesIntoVector(std::string str);
 
     std::string removeSrcStrComments();
 

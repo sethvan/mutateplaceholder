@@ -51,7 +51,6 @@ void validateHighlightArgs(CLIOptions *opts, std::vector<std::string> *nonpositi
     if (opts->hasMutCount()) throw InvalidArgumentException("Cannot use the --count option in highlight mode");
     if (opts->hasMinMutCount()) throw InvalidArgumentException("Cannot use the --min-count option in highlight mode");
     if (opts->hasMaxMutCount()) throw InvalidArgumentException("Cannot use the --max-count option in highlight mode");
-    if (opts->hasPenetration()) throw InvalidArgumentException("Cannot use the --penetration option in highlight mode");
     if (1 < nonpositionals->size())
         throw InvalidArgumentException("highlight mode does not accept extra non-positional arguments");
 

@@ -49,7 +49,7 @@ const char* STDIN_DASH_INIDCATOR = "-";
 // adapted from https://www.gnu.org/software/libc/manual/html_node/Getopt-Long-Option-Example.html
 ParseArgvStatusCode parseArgs(CLIOptions* output, std::vector<std::string>* nonPositionals, int argc,
                               const char** argv) {
-    static const char* short_options = "+i:m:o:r:w:s:p:c:f:h:v";
+    static const char* short_options = "+i:m:o:r:w:s:p:c:f:h:v:F";
 
     static struct option long_options[] = {{"input", required_argument, NULL, 'i'},
                                            {"mutations", required_argument, NULL, 'm'},
@@ -57,7 +57,6 @@ ParseArgvStatusCode parseArgs(CLIOptions* output, std::vector<std::string>* nonP
                                            {"read-seed", required_argument, NULL, 'r'},
                                            {"write-seed", required_argument, NULL, 'w'},
                                            {"seed", required_argument, NULL, 's'},
-                                           {"penetration", required_argument, NULL, 'p'},
                                            {"count", required_argument, NULL, 'c'},
                                            {"min-count", required_argument, NULL, (int)MutateOpts::MIN_COUNT},
                                            {"max-count", required_argument, NULL, (int)MutateOpts::MAX_COUNT},
@@ -65,6 +64,7 @@ ParseArgvStatusCode parseArgs(CLIOptions* output, std::vector<std::string>* nonP
                                            {"help", no_argument, NULL, 'h'},
                                            {"license", no_argument, NULL, 'v'},
                                            {"version", no_argument, NULL, 'v'},
+                                           {"force", no_argument, NULL, 'F'},
                                            {NULL, 0, NULL, 0}};
 
     int nextStartIndex = 1;
@@ -110,7 +110,7 @@ ParseArgvStatusCode parseArgs(CLIOptions* output, std::vector<std::string>* nonP
 
                 case 'o':
                     if (optarg == nullptr) throw std::runtime_error(genErrorMessage(rawArgCur));
-                    output->setResOutput(optarg);
+                    output->setOutputFileName(optarg);
                     break;
 
                 case 'r':
@@ -126,11 +126,6 @@ ParseArgvStatusCode parseArgs(CLIOptions* output, std::vector<std::string>* nonP
                 case 's':
                     if (optarg == nullptr) throw std::runtime_error(genErrorMessage(rawArgCur));
                     output->setSeed(optarg);
-                    break;
-
-                case 'p':
-                    if (optarg == nullptr) throw std::runtime_error(genErrorMessage(rawArgCur));
-                    output->setPenetration(optarg);
                     break;
 
                 case 'c':
@@ -151,6 +146,10 @@ ParseArgvStatusCode parseArgs(CLIOptions* output, std::vector<std::string>* nonP
                 case 'f':
                     if (optarg == nullptr) throw std::runtime_error(genErrorMessage(rawArgCur));
                     output->setFormat(optarg);
+                    break;
+
+                case 'F':
+                    output->forceOverwrite();
                     break;
 
                 case 'h':

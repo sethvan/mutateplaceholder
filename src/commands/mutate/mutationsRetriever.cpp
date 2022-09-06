@@ -26,14 +26,11 @@
 #include <cctype>
 #include <iostream>
 #include <set>
-#include <sstream>
 
 #include "common.hpp"
 #include "excepts.hpp"
 
-using stringIter = std::string::iterator;
-
-MutationsRetriever::MutationsRetriever(std::istream& tsvInput) : tsvStream{tsvInput} {}
+MutationsRetriever::MutationsRetriever(std::string tsvInput) : tsvStream{tsvInput} {}
 
 void MutationsRetriever::capturePossibleMutations() {
     std::vector<TSVRow> rows = getRows();
@@ -42,7 +39,7 @@ void MutationsRetriever::capturePossibleMutations() {
 
     do {
         line = rowsIt->row;
-        stringIter lineIt = line.begin();
+        std::string::iterator lineIt = line.begin();
         int lineNumber = rowsIt->lineNumber;
 
         checkIndentation(lineIt, line.end(), lineNumber);
@@ -93,7 +90,7 @@ void MutationsRetriever::categorizeMutations() {
     }
 }
 
-void MutationsRetriever::checkIndentation(stringIter it, const stringIter& end, int& lineNumber) {
+void MutationsRetriever::checkIndentation(std::string::iterator it, const std::string::iterator& end, int& lineNumber) {
     if (isWhiteSpace(it, end)) {
         std::ostringstream os;
         os << " Error : Indentation detected.\n"
@@ -103,8 +100,8 @@ void MutationsRetriever::checkIndentation(stringIter it, const stringIter& end, 
     }
 }
 
-std::string MutationsRetriever::getPatternOrPermutation(stringIter& it, const stringIter& end, int& lineNumber,
-                                                        int rowBeginningLine) {
+std::string MutationsRetriever::getPatternOrPermutation(std::string::iterator& it, const std::string::iterator& end,
+                                                        int& lineNumber, int rowBeginningLine) {
     std::string res = "";
     char* start = &(*it);       // <- to calculate index if error
     int consecutiveQuotes = 0;  // <- to determine when a quoted cell has ended,
@@ -150,8 +147,8 @@ std::string MutationsRetriever::getPatternOrPermutation(stringIter& it, const st
     return res;
 }
 
-void MutationsRetriever::verifyHasPermutation(stringIter it, const stringIter& end, int& lineNumber,
-                                              int rowBeginningLine) {
+void MutationsRetriever::verifyHasPermutation(std::string::iterator it, const std::string::iterator& end,
+                                              int& lineNumber, int rowBeginningLine) {
     if (it == end || noPermutationsInLine(it, end)) {
         std::ostringstream os;
         os << " Error : Permutation cell missing in TSV File.\n"
@@ -165,7 +162,7 @@ void MutationsRetriever::verifyHasPermutation(stringIter it, const stringIter& e
 // use of isWhiteSpace() ignores white space cells, changing back to accept
 // white space cells for now if we add ignoring option, this method will be
 // modified back
-bool MutationsRetriever::noPermutationsInLine(stringIter it, const stringIter& end) {
+bool MutationsRetriever::noPermutationsInLine(std::string::iterator it, const std::string::iterator& end) {
     // unsigned int bytes;
     // while (bytes = isWhiteSpace(it, end)) it += bytes;
     while (*it == '\t') ++it;
@@ -179,8 +176,8 @@ PossibleMutVec& MutationsRetriever::getPossibleMutations() {
     return possibleMutations;
 }
 
-void MutationsRetriever::throwInvalidCharException(stringIter it, const stringIter& end, int index, int lineNumber,
-                                                   int rowBeginningLine) {
+void MutationsRetriever::throwInvalidCharException(std::string::iterator it, const std::string::iterator& end,
+                                                   int index, int lineNumber, int rowBeginningLine) {
     std::string c = "[ '0' ]";
     c[3] = *(it + 1);
 
@@ -214,7 +211,7 @@ void MutationsRetriever::throwEmptyPatternException(int lineNumber) {
     throw TSVParsingException(os.str());
 }
 
-void MutationsRetriever::caseCaret(stringIter patIt, PossibleMutVec::iterator& pmIt) {
+void MutationsRetriever::caseCaret(std::string::iterator patIt, PossibleMutVec::iterator& pmIt) {
     pmIt->data.depth = 2;
 
     while (((patIt + 1) != pmIt->pattern.end()) && *(++patIt) == '^') ++(pmIt->data.depth);
@@ -226,8 +223,8 @@ void MutationsRetriever::caseCaret(stringIter patIt, PossibleMutVec::iterator& p
     }
 }
 
-void MutationsRetriever::caseSynced(stringIter patIt, PossibleMutVec::iterator& pmIt) {
-    pmIt->data.depth = pmIt->data.depth == 0 ? 2 : (pmIt->data.depth + 1);  // depth of non group leaders cab never be 1
+void MutationsRetriever::caseSynced(std::string::iterator patIt, PossibleMutVec::iterator& pmIt) {
+    pmIt->data.depth = pmIt->data.depth == 0 ? 2 : (pmIt->data.depth + 1);  // depth of non group leaders can never be 1
     pmIt->data.isIndexSynced = true;
     if (++patIt == pmIt->pattern.end()) { throwEmptyPatternException(pmIt->data.lineNumber); }
     if (pmIt->pattern.find_first_of("+?/!") == static_cast<size_t>(patIt - pmIt->pattern.begin())) {
@@ -255,7 +252,7 @@ void MutationsRetriever::checkNesting() {
     }
 }
 
-void MutationsRetriever::caseSpecialChars(stringIter patIt, PossibleMutVec::iterator& pmIt) {
+void MutationsRetriever::caseSpecialChars(std::string::iterator patIt, PossibleMutVec::iterator& pmIt) {
     std::set<char> sChars{'+', '!', '?'};
 
     while (sChars.find(*patIt) != sChars.end() && (patIt) != pmIt->pattern.end()) {
@@ -285,8 +282,8 @@ std::vector<TSVRow> MutationsRetriever::getRows() {
     temp.push_back({"", 1});
     char c, last;
     int QMarkCount = 0,
-        lineNumber = 1;  // QMarks are quotation marks not question marks
-    bool countTheQMarks = true;
+        lineNumber = 1;          // QMarks are quotation marks not question marks
+    bool countTheQMarks = true;  // Counting quotation marks only needs doing if a cell begins with one
 
     tsvStream.get(c);
     if ((last = c) == '\n') {  // in case first line is empty
@@ -297,10 +294,21 @@ std::vector<TSVRow> MutationsRetriever::getRows() {
         else {
             countTheQMarks = false;
         }
-        temp.back().row.push_back(c);
+        if (c == '#') {
+            while (c != '\n') tsvStream.get(c);  // Ignore line if comment
+            last = c;
+            ++lineNumber;
+        }
+        else
+            temp.back().row.push_back(c);
     }
 
     while (tsvStream.get(c)) {
+        if (c == '#') {
+            if (last == '\n') {
+                while (c != '\n') tsvStream.get(c);
+            }
+        }
         if (c == '\t' && !(QMarkCount % 2) && countTheQMarks) {
             QMarkCount = 0;
             countTheQMarks = false;
@@ -315,15 +323,17 @@ std::vector<TSVRow> MutationsRetriever::getRows() {
             else
                 ++QMarkCount;
         }
-
         if (c == '\n') {
             ++lineNumber;
-            if (last == '\n' && !(QMarkCount % 2)) continue;
-            if ((last != '\n' && !(QMarkCount % 2)) || temp.back().row[0] == '#') {
-                temp.push_back({"", lineNumber});
-                QMarkCount = 0;
-                last = c;
-                continue;
+            if (!(QMarkCount % 2)) {
+                if (last == '\n')
+                    continue;
+                else {
+                    temp.push_back({"", lineNumber});
+                    QMarkCount = 0;
+                    last = c;
+                    continue;
+                }
             }
         }
         temp.back().row.push_back(c);
@@ -331,14 +341,5 @@ std::vector<TSVRow> MutationsRetriever::getRows() {
     }
     if (!temp.back().row.size()) temp.pop_back();
 
-    std::vector<TSVRow> rows;
-    rows.reserve(temp.size());
-    std::for_each(temp.begin(), temp.end(), [&](TSVRow& Row) {
-        if (Row.row[0] != '#') rows.push_back(Row);
-    });
-    // std::cout << "rows.size(): " << rows.size() << std::endl;
-    // for(const auto& row: rows) {
-    // 	std::cout << row.lineNumber << ": " << row.row << std::endl;
-    // }
-    return rows;
+    return temp;
 }

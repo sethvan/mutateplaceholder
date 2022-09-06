@@ -35,7 +35,7 @@ struct SelectedLineInfo {
     bool isIndexSynced : 1;
     bool isOptional : 1;
     bool mustPass : 1;
-    bool : 0;      // sv index will = depth + isOptional + isNewLined + mustPass- 1
+    bool : 0;
     size_t depth;  // depth 0 = normal, 1 = group leader, 2 = one '^' or one '@', 3 = ^^ or ^@, etc..
     size_t groupNumber;
     size_t lineNumber;
@@ -56,11 +56,11 @@ struct TsvFileLine {
 using PossibleMutVec = std::vector<TsvFileLine>;
 
 struct SelectedMutation {
-    std::string_view pattern;
-    std::string_view mutation;
+    std::string pattern;
+    std::string mutation;
     SelectedLineInfo data;
 
-    SelectedMutation(std::string_view _pattern, std::string_view _mutation, SelectedLineInfo info)
+    SelectedMutation(std::string _pattern, std::string _mutation, SelectedLineInfo info)
         : pattern{_pattern}, mutation{_mutation}, data{info} {}
 };
 using SelectedMutVec = std::vector<SelectedMutation>;

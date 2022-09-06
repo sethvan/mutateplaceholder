@@ -341,8 +341,8 @@ static bool testTsvRealFileInput() {
 // 	const char* inputFile = "./src/commands/cli-options.cpp";
 // 	const char* tsvFile = "../small-samples/mySamples/cli-options.tsv";
 // 	testLog << INDENT "Passing {\"./test\", \"mutate\", \"-i\", \"" << inputFile << "\", \"-m\", \"" << tsvFile <<
-// "\"} to parseArgs" << '\n'; 	const char * argv[] = {"./test", "mutate", "-i", inputFile, "-m", tsvFile, nullptr}; 	int
-// argc = 0; 	while (argv[argc] != nullptr) ++argc;
+// "\"} to parseArgs" << '\n'; 	const char * argv[] = {"./test", "mutate", "-i", inputFile, "-m", tsvFile, nullptr};
+// int argc = 0; 	while (argv[argc] != nullptr) ++argc;
 
 // 	CLIOptions parsedArgs;
 // 	std::vector<std::string> nonpositionals;
@@ -419,14 +419,73 @@ bool bruteForceUnicodeWhitespaceUnitTest() {
     return count != 25;
 }
 
+static bool testOutputFileExistsNoOverwrite() {
+    std::string errMsg;
+    const char* inputFile = "../src/commands/cli-options.cpp";
+    const char* tsvFile = "../tools/small-samples/mySamples/cli-options.tsv";
+    const char* outputFile = "./existingFile.cpp";
+    testLog << INDENT "Passing {\"./test\", \"mutate\", \"-i\", \"" << inputFile << "\", \"-m\", \"" << tsvFile
+            << "\", \"-o\", \"" << outputFile << "\"} to parseArgs" << '\n';
+    const char* argv[] = {"./test", "mutate", "-i", inputFile, "-m", tsvFile, "-o", outputFile, nullptr};
+    int argc = 0;
+    while (argv[argc] != nullptr) ++argc;
+
+    CLIOptions parsedArgs;
+    std::vector<std::string> nonpositionals;
+    parseArgs(&parsedArgs, &nonpositionals, argc, argv);
+    bool caughtException = false;
+    try {
+        execMutate(&parsedArgs, &nonpositionals);
+    } catch (const std::exception& ex) {
+        errMsg = std::string(ex.what());
+        caughtException = true;
+    }
+    std::ostringstream os;
+    os << "Output file \'" << outputFile << "\' already exists. Use \'-F\' to force overwrite.";
+    std::string expected{sanitizeOutputMessage(os.str())};
+
+    if (caughtException) {
+        testLog << INDENT << "Expected the following what() from exception: " << expected << "\n";
+        testLog << INDENT << "Received the following: " << errMsg << "\n";
+    }
+    else {
+        testLog << INDENT << "Expected std::exception to be thrown and none was thrown.\n";
+    }
+
+    return (expected != errMsg);
+}
+
+static bool testOverwriteFlag() {
+    std::string errMsg;
+    const char* inputFile = "../src/commands/cli-options.cpp";
+    const char* tsvFile = "../tools/small-samples/mySamples/cli-options.tsv";
+    const char* outputFile = "./existingFile.cpp";
+    testLog << INDENT "Passing {\"./test\", \"mutate\", \"-i\", \"" << inputFile << "\", \"-m\", \"" << tsvFile
+            << "\", \"-o\", \"" << outputFile << "\", \"-F"
+            << "\"} to parseArgs" << '\n';
+    const char* argv[] = {"./test", "mutate", "-i", inputFile, "-m", tsvFile, "-o", outputFile, "-F", nullptr};
+    int argc = 0;
+    while (argv[argc] != nullptr) ++argc;
+
+    CLIOptions parsedArgs;
+    std::vector<std::string> nonpositionals;
+    parseArgs(&parsedArgs, &nonpositionals, argc, argv);
+    bool caughtException = false;
+    try {
+        execMutate(&parsedArgs, &nonpositionals);
+    } catch (const std::exception& ex) {
+        errMsg = std::string(ex.what());
+        caughtException = true;
+    }
+    testLog << INDENT << "Expected no std::exception to be thrown and one was thrown.\n";
+    testLog << INDENT << "Received the following: " << errMsg << "\n";
+
+    return caughtException;
+}
+
 int main(int argc, const char** argv) {
     (void)argc;
     (void)argv;
-
-    // POOR_MANS_TEST("Make sure test system works", makeSureTestSystemWorks);
-
-    // #define PASSED_INDEXES {80, 78, 84, 103, 104, 105, 106, 107, 108, 109, 110}
-    // #define EXPECTED_LINES {81, 79, 84, 87, 106, 109}
 
     POOR_MANS_TEST("Double-dash (--) ends options and starts positional arguments", testDoubleDashPositionalArgs);
 
@@ -438,10 +497,14 @@ int main(int argc, const char** argv) {
 
     POOR_MANS_TEST("Insertion Operator Test", insertionOperatorTest);
 
-    // POOR_MANS_TEST("Line selection matchup", patternOperatorsTest, {18, 33, 48, 51, 46, 3, 2, 1, 0}, {64, 61, 59, 58,
-    // 56, 45, 24, 4, 3});
+    // POOR_MANS_TEST("Line selection matchup", patternOperatorsTest, {18, 33, 48, 51, 46, 3, 2, 1, 0}, {64, 61, 59,
+    // 58, 56, 45, 24, 4, 3});
 
     POOR_MANS_TEST("Test isWhiteSpace() function", bruteForceUnicodeWhitespaceUnitTest);
+
+    POOR_MANS_TEST("Test if default is to not overWrite existing files", testOutputFileExistsNoOverwrite);
+
+    POOR_MANS_TEST("Test overwrite flag", testOverwriteFlag);
 
     printFailedTestResults();
 

@@ -49,7 +49,7 @@ void Mutator::mutate() {
     for (const auto& sm : selectedMutations) {
         if (sm.data.isRegex)
             regexReplace(strippedStr, sm);
-        else if (isMultilineStringView(sm.pattern))
+        else if (isMultilineString(sm.pattern))
             multilineReplace(strippedStr, sm);
         else
             replaceStringInPlace(strippedStr, sm);
@@ -91,12 +91,10 @@ void Mutator::regexReplace(std::string& subject, const SelectedMutation& sm) {
     std::set<std::string> matches = getMatches(pattern, subject, modifiers);
 
     for (const auto& str : matches) {
-        std::string_view regexPattern(str);
-        std::string mut = jp::Regex(pattern).replace(str, sm.mutation.data(), modifiers);
-        std::string_view regexMutation(mut);
-        SelectedMutation regexSm(regexPattern, regexMutation, sm.data);
+        std::string regexMutation = jp::Regex(pattern).replace(str, sm.mutation, modifiers);
+        SelectedMutation regexSm(str, regexMutation, sm.data);
         if (regexSm.pattern.size()) {
-            if (isMultilineStringView(regexSm.pattern))
+            if (isMultilineString(regexSm.pattern))
                 multilineReplace(subject, regexSm);
             else
                 replaceStringInPlace(subject, regexSm);
@@ -116,10 +114,10 @@ std::string Mutator::removeSrcStrComments() {
 }
 
 // Does not consider consecutive newlines '\n' to mean multi line if they are at the beginning or end
-bool Mutator::isMultilineStringView(std::string_view sv) const {
-    auto it = sv.begin();
-    if ((it + 1) != sv.end()) {
-        while ((it + 2) != sv.end()) {
+bool Mutator::isMultilineString(std::string str) const {
+    auto it = str.begin();
+    if ((it + 1) != str.end()) {
+        while ((it + 2) != str.end()) {
             ++it;
             if ((*it == '\n' || *it == '\n') && (*(it - 1) != '\n') && (*(it - 1) != '\r') && (*(it + 1) != '\n') &&
                 (*(it + 1) != '\r'))
@@ -129,12 +127,12 @@ bool Mutator::isMultilineStringView(std::string_view sv) const {
     return false;
 }
 
-std::vector<std::string> Mutator::separateLinesIntoVector(std::string_view sv) {
-    std::istringstream is{sv.data()};
+std::vector<std::string> Mutator::separateLinesIntoVector(std::string str) {
+    std::istringstream is{str};
     std::string line;
     std::vector<std::string> vec;
 
-    while (std::getline(is, line)) { vec.push_back(line + "\n"); }
+    while (std::getline(is, line)) vec.push_back(line + "\n");
     vec.back().pop_back();
     return vec;
 }
@@ -213,7 +211,7 @@ bool Mutator::substringIsMatch(const std::string& subject, std::string::iterator
 
 void Mutator::checkPermutation(const SelectedMutation& sm, bool addIndentation, std::string& permutationString,
                                const std::string& indent) {
-    if (isMultilineStringView(sm.mutation) && addIndentation) {
+    if (isMultilineString(sm.mutation) && addIndentation) {
         std::vector<std::string> permLines = separateLinesIntoVector(sm.mutation);
         if (sm.data.isNewLined)
             permutationString += indent + permLines[0];

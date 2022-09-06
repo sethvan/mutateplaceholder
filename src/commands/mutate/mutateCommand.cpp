@@ -26,6 +26,7 @@
 
 #include "commands/mutate/mutateCommand.hpp"
 
+#include <filesystem>
 #include <sstream>
 
 #include "excepts.hpp"
@@ -37,14 +38,15 @@ std::string printMutateHelp(const char *indent) {
     ss << indent << "-r, --read-seed=FILE     Read PRNG seed from this file. Defaults to generating a new seed\n";
     ss << indent << "-w, --write-seed=FILE    Write PRNG seed out to this file. Defaults to discarding the seed\n";
     ss << indent
-       << "-p, --penetration=NUMBER Nested group depth target level. Defaults to 1, meaning no bias towards nested "
-          "groups\n";
-    ss << indent
        << "-c, --count=NUMBER       Number of mutations to perform. Defaults to a random number of mutations\n";
     ss << indent << "    --min-count=NUMBER   Minimum number of mutations to perform. Defaults to 1\n";
     ss << indent
        << "    --max-count=NUMBER   Maximum number of mutations to perform. Defaults to the available number of "
           "mutations\n";
+    ss << '\n';
+    ss << indent
+       << "-F, --force              Overwrite existing file specified for mutated output. Defaults to aborting if "
+          "output file already exists\n";
     ss << '\n';
     ss << indent
        << "NOTE: The options --read-seed and --seed are mutally exclusive. You can't use both at the same time.\n";
@@ -68,24 +70,30 @@ void validateMutateArgs(CLIOptions *opts, std::vector<std::string> *nonpositiona
     if (opts->hasFormat()) throw InvalidArgumentException("Cannot use the --format option in mutate mode");
     if (1 < nonpositionals->size())
         throw InvalidArgumentException("mutate mode does not accept extra non-positional arguments");
-    if (!opts->hasPenetration()) { opts->setPenetration("0"); }
+
+    if (opts->hasOutputFileName()) {
+        const char *path = opts->getOutputFileName();
+        if (std::filesystem::exists(path) && !opts->okToOverwriteOutputFile()) {
+            std::ostringstream os;
+            os << "Output file \'" << path << "\' already exists. Use \'-F\' to force overwrite.";
+            throw IOErrorException(sanitizeOutputMessage(os.str()));
+        }
+        opts->setResOutput(path);
+    }
+    else if (opts->okToOverwriteOutputFile()) {
+        throw InvalidArgumentException("Option --force invalid when no output file is specified.");
+    }
+
     // TSV parsing and validation performed by MutationsRetriever class in doAction()
     // mutCount setting and seed hex validation or (if needed) seed generation performed by MutationsSelector class in
     // doAction()
-    //
 }
 
 void doMutateAction(CLIOptions *opts, std::vector<std::string> *nonpositionals) {
     // TODO: actually do stuff here
     (void)nonpositionals;  // silence unused warnings
 
-    std::istringstream tsvStream{opts->getTsvString()};
-    if (!tsvStream) throw IOErrorException("I/O error opening TSV File");
-    // std::istringstream srcStream{opts->getSrcString()};
-    // if(!srcStream) throw IOErrorException("I/O error opening Source File");
-    // std::ostringstream outputStream;
-
-    MutationsRetriever mRetriever{tsvStream};
+    MutationsRetriever mRetriever{opts->getTsvString()};
     MutationsSelector mSelector{opts, mRetriever.getPossibleMutations()};
     std::string outputString;
     Mutator mutator{opts->getSrcString(), outputString, mSelector.getSelectedMutations(), opts};
