@@ -137,9 +137,9 @@ std::string MutationsRetriever::getPatternOrPermutation(std::string::iterator& i
             }
             res.push_back(*(it++));
         }
-        if (!(consecutiveQuotes % 2)) {
+        if (it == end && !(consecutiveQuotes % 2)) {
             // final cell in row is missing terminating quote
-            throwTerminatingQuoteException(lineNumber);  // extracting to own method for consistency with above
+            throwTerminatingQuoteException(rowBeginningLine);  // extracting to own method for consistency with above
         }
     }
     else
@@ -200,7 +200,8 @@ void MutationsRetriever::throwTerminatingQuoteException(int lineNumber) {
     os << " Error : Terminating quote missing.\n"
        << "Notice :\n    Cells beginning with QUOTATION MARK must end with "
        << "QUOTATION MARK.\n"
-       << "    Final cell on line number " << lineNumber << " missing terminating QUOTATION MARK." << std::endl;
+       << "    Final cell of row beginning on line number " << lineNumber << " missing terminating QUOTATION MARK."
+       << std::endl;
     throw TSVParsingException(os.str());
 }
 
@@ -282,8 +283,8 @@ std::vector<TSVRow> MutationsRetriever::getRows() {
     temp.push_back({"", 1});
     char c, last;
     int QMarkCount = 0,
-        lineNumber = 1;          // QMarks are quotation marks not question marks
-    bool countTheQMarks = true;  // Counting quotation marks only needs doing if a cell begins with one
+        lineNumber = 1;  // QMarks are quotation marks not question marks
+    bool countTheQMarks = true;
 
     tsvStream.get(c);
     if ((last = c) == '\n') {  // in case first line is empty
@@ -294,21 +295,10 @@ std::vector<TSVRow> MutationsRetriever::getRows() {
         else {
             countTheQMarks = false;
         }
-        if (c == '#') {
-            while (c != '\n') tsvStream.get(c);  // Ignore line if comment
-            last = c;
-            ++lineNumber;
-        }
-        else
-            temp.back().row.push_back(c);
+        temp.back().row.push_back(c);
     }
 
     while (tsvStream.get(c)) {
-        if (c == '#') {
-            if (last == '\n') {
-                while (c != '\n') tsvStream.get(c);
-            }
-        }
         if (c == '\t' && !(QMarkCount % 2) && countTheQMarks) {
             QMarkCount = 0;
             countTheQMarks = false;
@@ -323,17 +313,15 @@ std::vector<TSVRow> MutationsRetriever::getRows() {
             else
                 ++QMarkCount;
         }
+
         if (c == '\n') {
             ++lineNumber;
-            if (!(QMarkCount % 2)) {
-                if (last == '\n')
-                    continue;
-                else {
-                    temp.push_back({"", lineNumber});
-                    QMarkCount = 0;
-                    last = c;
-                    continue;
-                }
+            if (last == '\n' && !(QMarkCount % 2)) continue;
+            if ((last != '\n' && !(QMarkCount % 2)) || temp.back().row[0] == '#') {
+                temp.push_back({"", lineNumber});
+                QMarkCount = 0;
+                last = c;
+                continue;
             }
         }
         temp.back().row.push_back(c);
@@ -341,5 +329,13 @@ std::vector<TSVRow> MutationsRetriever::getRows() {
     }
     if (!temp.back().row.size()) temp.pop_back();
 
-    return temp;
+    std::vector<TSVRow> rows;
+    rows.reserve(temp.size());
+    std::for_each(temp.begin(), temp.end(), [&](TSVRow& Row) {
+        if (Row.row[0] != '#') rows.push_back(Row);
+    });
+
+    if (!rows.size()) { throw TSVParsingException("No mutations found in TSV file."); }
+
+    return rows;
 }

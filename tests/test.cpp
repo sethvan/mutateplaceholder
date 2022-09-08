@@ -56,6 +56,9 @@
 #include "commands/mutate/mutationsSelector.hpp"
 #include "excepts.hpp"
 
+// (extern variable from common.hpp) do not need to see process status messages for these tests
+const bool PrintProcessStatusEnabled = false;
+
 // template <typename T>
 // std::ostream& operator<<(std::ostream& os, const std::vector<T>& vec ) {
 // 	//std::ostream os;
@@ -192,24 +195,32 @@ void printFailedTestResults(void) {
 
 #define INDENT "    "
 
+struct parsingBoilerPlate {
+    CLIOptions parsedArgs;
+    std::vector<std::string> nonpositionals;
+    ParseArgvStatusCode status;
+
+    parsingBoilerPlate(const char* argv[]) {
+        int argc = 0;
+        while (argv[argc] != nullptr) ++argc;
+        status = parseArgs(&parsedArgs, &nonpositionals, argc, argv);
+        testLog << INDENT "Passing {";
+        for (int i = 0; i < argc; ++i) {
+            testLog << "\"" << argv[i] << "\"" << (i == argc - 1 ? "} to parseArgs \n" : ", ");
+        }
+    }
+};
+
 /*bool makeSureTestSystemWorks() {
         testLog << INDENT "NOTICE: this test should always fail and this message printed. If this test is not failing,
 then there's an issue with the test system." << '\n'; return true; // change this to `true` to reveal the test log
 }*/
 
 static bool testDoubleDashPositionalArgs() {
-    testLog << INDENT
-        "Passing {\"./test\", \"--\", \"--seed\", "
-        "\"71E8DC1EC351FAFA40998B1178F7AE00328B4D464172111F6B2AA49D4BC6C1A6\"} to parseArgs"
-            << '\n';
     const char* argv[] = {"./test", "--", "--seed", "71E8DC1EC351FAFA40998B1178F7AE00328B4D464172111F6B2AA49D4BC6C1A6",
                           nullptr};
-    int argc = 0;
-    while (argv[argc] != nullptr) ++argc;
-
-    CLIOptions parsedArgs;
-    std::vector<std::string> nonpositionals;
-    ParseArgvStatusCode status = parseArgs(&parsedArgs, &nonpositionals, argc, argv);
+    parsingBoilerPlate bp(argv);
+    auto& [parsedArgs, nonpositionals, status] = bp;
 
     if (status != ParseArgvStatusCode::SUCCESS) {
         testLog << INDENT "ERR: failed to parse arguments. Got ParseArgvStatusCode code " << (int)status << '\n';
@@ -230,15 +241,9 @@ static bool testDoubleDashPositionalArgs() {
 
 static bool testSeedParsing() {
     const char* expectedSeed = "71E8DC1EC351FAFA40998B1178F7AE00328B4D464172111F6B2AA49D4BC6C1A6";
-
-    testLog << INDENT "Passing {\"./test\", \"--seed\", \"" << expectedSeed << "\"} to parseArgs" << '\n';
     const char* argv[] = {"./test", "--seed", expectedSeed, nullptr};
-    int argc = 0;
-    while (argv[argc] != nullptr) ++argc;
-
-    CLIOptions parsedArgs;
-    std::vector<std::string> nonpositionals;
-    ParseArgvStatusCode status = parseArgs(&parsedArgs, &nonpositionals, argc, argv);
+    parsingBoilerPlate bp(argv);
+    auto& [parsedArgs, nonpositionals, status] = bp;
 
     if (status != ParseArgvStatusCode::SUCCESS) {
         testLog << INDENT "ERR: failed to parse arguments. Got ParseArgvStatusCode code " << (int)status << '\n';
@@ -263,15 +268,9 @@ static bool testSeedParsing() {
 static bool testSrcDevNullInput() {
     const char* inputFile = "/dev/null";
     const char* inputContents = "";
-
-    testLog << INDENT "Passing {\"./test\", \"--input\", \"" << inputFile << "\"} to parseArgs" << '\n';
     const char* argv[] = {"./test", "--input", inputFile, nullptr};
-    int argc = 0;
-    while (argv[argc] != nullptr) ++argc;
-
-    CLIOptions parsedArgs;
-    std::vector<std::string> nonpositionals;
-    ParseArgvStatusCode status = parseArgs(&parsedArgs, &nonpositionals, argc, argv);
+    parsingBoilerPlate bp(argv);
+    auto& [parsedArgs, nonpositionals, status] = bp;
 
     if (status != ParseArgvStatusCode::SUCCESS) {
         testLog << INDENT "ERR: failed to parse arguments. Got ParseArgvStatusCode code " << (int)status << '\n';
@@ -303,14 +302,9 @@ static bool testTsvRealFileInput() {
     fwrite((const void*)inputContents, 1, std::strlen(inputContents), tmpHandle);
     fclose(tmpHandle);
 
-    testLog << INDENT "Passing {\"./test\", \"--mutations\", \"" << inputFile << "\"} to parseArgs" << '\n';
     const char* argv[] = {"./test", "--mutations", inputFile, nullptr};
-    int argc = 0;
-    while (argv[argc] != nullptr) ++argc;
-
-    CLIOptions parsedArgs;
-    std::vector<std::string> nonpositionals;
-    ParseArgvStatusCode status = parseArgs(&parsedArgs, &nonpositionals, argc, argv);
+    parsingBoilerPlate bp(argv);
+    auto& [parsedArgs, nonpositionals, status] = bp;
 
     if (status != ParseArgvStatusCode::SUCCESS) {
         testLog << INDENT "ERR: failed to parse arguments. Got ParseArgvStatusCode code " << (int)status << '\n';
@@ -337,43 +331,29 @@ static bool testTsvRealFileInput() {
     return false;  // change this to `true` to reveal the test log
 }
 
-// static bool patternOperatorsTest(std::vector<size_t> passedIndexes, std::vector<size_t> expectedIndexes) {
-// 	const char* inputFile = "./src/commands/cli-options.cpp";
-// 	const char* tsvFile = "../small-samples/mySamples/cli-options.tsv";
-// 	testLog << INDENT "Passing {\"./test\", \"mutate\", \"-i\", \"" << inputFile << "\", \"-m\", \"" << tsvFile <<
-// "\"} to parseArgs" << '\n'; 	const char * argv[] = {"./test", "mutate", "-i", inputFile, "-m", tsvFile, nullptr};
-// int argc = 0; 	while (argv[argc] != nullptr) ++argc;
+static bool patternOperatorsTest(const char* tsvFile, std::vector<size_t> passedLines,
+                                 std::vector<size_t> expectedLines) {
+    const char* argv[] = {"./test", "mutate", "-m", tsvFile, nullptr};
+    parsingBoilerPlate bp(argv);
+    auto& [parsedArgs, nonpositionals, status] = bp;
 
-// 	CLIOptions parsedArgs;
-// 	std::vector<std::string> nonpositionals;
-// 	parseArgs(&parsedArgs, &nonpositionals, argc, argv);
-// 	std::istringstream tsvStream{parsedArgs.getTsvString()};
-// 	if(!tsvStream) throw IOErrorException("I/O error opening TSV File");
-// 	std::istringstream srcStream{parsedArgs.getSrcString()};
-// 	if(!srcStream) throw IOErrorException("I/O error opening Source File");
+    MutationsRetriever mRetriever{parsedArgs.getTsvString()};
+    MutationsSelector mSelector{&parsedArgs, mRetriever.getPossibleMutations()};
+    testLog << INDENT "Passing lines " << passedLines << " to MutationsSelector\n";
 
-// 	MutationsRetriever mRetriever{tsvStream};
-// 	MutationsSelector mSelector{&parsedArgs, mRetriever.getPossibleMutations()};
-// 	testLog << INDENT "Passing indexes " << passedIndexes << " to MutationsSelector\n";
+    // passedLines are really line(or row depending) numbers, thus subtracting 1 to match array element
+    std::transform(passedLines.begin(), passedLines.end(), passedLines.begin(), [](auto n) { return n - 1; });
 
-// 	mSelector.selectedIndexes = passedIndexes;
-// 	SelectedMutVec sm = mSelector.getSelectedMutations();
-// 	std::vector<size_t> expectedLines = expectedIndexes;
-// 	std::vector<size_t> selectedLines{};
-// 	for(const auto& e : sm) {
-// 		selectedLines.push_back(e.data.lineNumber);
-// 	}
+    mSelector.selectedIndexes = passedLines;
+    SelectedMutVec sm = mSelector.getSelectedMutations();
+    std::vector<size_t> selectedLines{};
+    for (const auto& e : sm) { selectedLines.push_back(e.data.lineNumber); }
 
-// 	testLog << INDENT "Expect the following indexes to be selected: " << expectedIndexes << "\n";
-// 	testLog << INDENT " Received the following indexes as selected: " << selectedLines << "\n";
-// 	// for(const auto& e: selectedLines) {
-// 	// 	testLog << e << (e==selectedLines.back()? "" : ", ");
-// 	// }
+    testLog << INDENT "Expect the following lines to be selected: " << expectedLines << "\n";
+    testLog << INDENT " Received the following lines as selected: " << selectedLines << "\n";
 
-// 	// testLog << "}\n";
-
-// 	return (expectedLines != selectedLines);
-// }
+    return (expectedLines != selectedLines);
+}
 
 bool insertionOperatorTest() {
     std::string expectedStr = "{10, 9, 8, 7, 6, 5, 4, 3, 2, 1}";
@@ -419,20 +399,15 @@ bool bruteForceUnicodeWhitespaceUnitTest() {
     return count != 25;
 }
 
-static bool testOutputFileExistsNoOverwrite() {
+static bool testOutputFileExistsDefault() {
     std::string errMsg;
-    const char* inputFile = "../src/commands/cli-options.cpp";
-    const char* tsvFile = "../tools/small-samples/mySamples/cli-options.tsv";
-    const char* outputFile = "./existingFile.cpp";
-    testLog << INDENT "Passing {\"./test\", \"mutate\", \"-i\", \"" << inputFile << "\", \"-m\", \"" << tsvFile
-            << "\", \"-o\", \"" << outputFile << "\"} to parseArgs" << '\n';
+    const char* inputFile = "./ioFiles/rawFiles/cli-options.cpp";
+    const char* tsvFile = "./ioFiles/rawFiles/cli-options.tsv";
+    const char* outputFile = "./ioFiles/forceOverwrite/existingFile.cpp";
     const char* argv[] = {"./test", "mutate", "-i", inputFile, "-m", tsvFile, "-o", outputFile, nullptr};
-    int argc = 0;
-    while (argv[argc] != nullptr) ++argc;
+    parsingBoilerPlate bp(argv);
+    auto& [parsedArgs, nonpositionals, status] = bp;
 
-    CLIOptions parsedArgs;
-    std::vector<std::string> nonpositionals;
-    parseArgs(&parsedArgs, &nonpositionals, argc, argv);
     bool caughtException = false;
     try {
         execMutate(&parsedArgs, &nonpositionals);
@@ -457,19 +432,13 @@ static bool testOutputFileExistsNoOverwrite() {
 
 static bool testOverwriteFlag() {
     std::string errMsg;
-    const char* inputFile = "../src/commands/cli-options.cpp";
-    const char* tsvFile = "../tools/small-samples/mySamples/cli-options.tsv";
-    const char* outputFile = "./existingFile.cpp";
-    testLog << INDENT "Passing {\"./test\", \"mutate\", \"-i\", \"" << inputFile << "\", \"-m\", \"" << tsvFile
-            << "\", \"-o\", \"" << outputFile << "\", \"-F"
-            << "\"} to parseArgs" << '\n';
+    const char* inputFile = "./ioFiles/rawFiles/cli-options.cpp";
+    const char* tsvFile = "./ioFiles/rawFiles/cli-options.tsv";
+    const char* outputFile = "./ioFiles/forceOverwrite/existingFile.cpp";
     const char* argv[] = {"./test", "mutate", "-i", inputFile, "-m", tsvFile, "-o", outputFile, "-F", nullptr};
-    int argc = 0;
-    while (argv[argc] != nullptr) ++argc;
+    parsingBoilerPlate bp(argv);
+    auto& [parsedArgs, nonpositionals, status] = bp;
 
-    CLIOptions parsedArgs;
-    std::vector<std::string> nonpositionals;
-    parseArgs(&parsedArgs, &nonpositionals, argc, argv);
     bool caughtException = false;
     try {
         execMutate(&parsedArgs, &nonpositionals);
@@ -481,6 +450,136 @@ static bool testOverwriteFlag() {
     testLog << INDENT << "Received the following: " << errMsg << "\n";
 
     return caughtException;
+}
+
+static bool testCaptureSingleLineTSVRows() {
+    const char* tsvFile = "./ioFiles/captureRows/singleLines/cli-options.tsv";
+    const char* argv[] = {"./test", "mutate", "-m", tsvFile, nullptr};
+    parsingBoilerPlate bp(argv);
+    auto& [parsedArgs, nonpositionals, status] = bp;
+
+    MutationsRetriever mRetriever{parsedArgs.getTsvString()};
+    int expectedLineCount = 154;
+    int receivedLineCount = static_cast<int>(mRetriever.getRows().size());
+    testLog << INDENT << "Expected to capture " << expectedLineCount << " rows in TSV file.\n";
+    testLog << INDENT << "Instead " << receivedLineCount << " rows were captured.\n";
+    return expectedLineCount != receivedLineCount;
+}
+
+static bool testCaptureMultipleLineTSVRows() {
+    const char* tsvFile = "./ioFiles/captureRows/multipleLines/cli-options.tsv";
+    const char* argv[] = {"./test", "mutate", "-m", tsvFile, nullptr};
+    parsingBoilerPlate bp(argv);
+    auto& [parsedArgs, nonpositionals, status] = bp;
+
+    MutationsRetriever mRetriever{parsedArgs.getTsvString()};
+    int expectedLineCount = 157;
+    int receivedLineCount = static_cast<int>(mRetriever.getRows().size());
+    testLog << INDENT << "Expected to capture " << expectedLineCount << " rows in TSV file.\n";
+    testLog << INDENT << "Instead " << receivedLineCount << " rows were captured.\n";
+    return expectedLineCount != receivedLineCount;
+}
+
+// helper function
+static bool compareOutcome(bool caughtException, std::string expected, std::string received) {
+    if (caughtException) {
+        testLog << INDENT << "Expected the following what() from exception: " << expected << "\n";
+        testLog << INDENT << "Received the following: " << received << "\n";
+    }
+    else {
+        testLog << INDENT << "Expected std::exception to be thrown and none was thrown.\n";
+    }
+    return expected != received;
+}
+
+// helper function
+static bool testMutationsRetrieverException(const char* tsvFile, std::string expected) {
+    const char* argv[] = {"./test", "mutate", "-m", tsvFile, nullptr};
+    parsingBoilerPlate bp(argv);
+    auto& [parsedArgs, nonpositionals, status] = bp;
+
+    MutationsRetriever mRetriever{parsedArgs.getTsvString()};
+    std::string errMsg;
+    bool caughtException = false;
+
+    try {
+        mRetriever.capturePossibleMutations();
+    } catch (const std::exception& ex) {
+        errMsg = std::string(ex.what());
+        caughtException = true;
+    }
+
+    return compareOutcome(caughtException, expected, errMsg);
+}
+
+static bool indentationCheck() {
+    const char* tsvFile = "./ioFiles/checkTSVIndentation/cli-options.tsv";
+    std::ostringstream os;
+    os << " Error : Indentation detected.\n"
+       << "Notice :\n    Cells in TSV format should not be indented.\n"
+       << "    Indentation found at row 129 of TSV File." << std::endl;
+    std::string expected{os.str()};
+
+    return testMutationsRetrieverException(tsvFile, expected);
+}
+
+static bool checkQuotedCellEndings() {
+    const char* tsvFile = "./ioFiles/quotedCells/endOfCell/cli-options.tsv";
+    std::ostringstream os;
+    os << " Error : Invalid syntax found at index 27 of line number 7 in TSV\n"
+       << "Notice :\n    Currently found in your TSV : ... \"['SPACE']...\n"
+       << "    Expected to be found in TSV : ... \"['TAB']...\n"
+       << "\nIf index 26 is not intended end of quoted cell, "
+       << "check preceding section of the row beginning with pattern cell on "
+          "line number 5\nfor any extra or missing "
+       << "QUOTATION MARKS and/or TABs as they are likely cause of error." << std::endl;
+    std::string expected{os.str()};
+
+    return testMutationsRetrieverException(tsvFile, expected);
+}
+
+static bool checkTerminatingQuoteException() {
+    const char* tsvFile = "./ioFiles/quotedCells/endOfFile/ODV1.tsv";
+    std::ostringstream os;
+    os << " Error : Terminating quote missing.\n"
+       << "Notice :\n    Cells beginning with QUOTATION MARK must end with "
+       << "QUOTATION MARK.\n"
+       << "    Final cell of row beginning on line number 109 missing terminating QUOTATION MARK." << std::endl;
+    std::string expected{os.str()};
+
+    return testMutationsRetrieverException(tsvFile, expected);
+}
+
+static bool verifyHasPermutations() {
+    const char* tsvFile = "./ioFiles/hasData/hasPermutations/ODV1.tsv";
+    std::ostringstream os;
+    os << " Error : Permutation cell missing in TSV File.\n"
+       << "Notice :\n    Missing permutation cell on line number 87\n    Row that begins with pattern cell on line "
+          "number 87 has no corresponding permutation cell(s)."
+       << std::endl;
+    std::string expected{os.str()};
+
+    return testMutationsRetrieverException(tsvFile, expected);
+}
+
+static bool verifyHasMutations() {
+    const char* tsvFile = "./ioFiles/hasData/hasMutations/ODV1.tsv";
+    std::ostringstream os;
+    os << "No mutations found in TSV file.";
+    std::string expected{os.str()};
+
+    return testMutationsRetrieverException(tsvFile, expected);
+}
+
+static bool verifyGrouping(const char* tsvFile) {
+    patternOperatorsTest(tsvFile, {1}, {5, 1});
+    patternOperatorsTest(tsvFile, {2}, {5, 2, 1});
+    patternOperatorsTest(tsvFile, {3}, {5, 4, 3, 2, 1});
+    patternOperatorsTest(tsvFile, {4}, {5, 4, 3, 2, 1});
+    patternOperatorsTest(tsvFile, {5}, {5, 1});
+    patternOperatorsTest(tsvFile, {6}, {6, 5, 1});
+
+    return false;
 }
 
 int main(int argc, const char** argv) {
@@ -497,14 +596,27 @@ int main(int argc, const char** argv) {
 
     POOR_MANS_TEST("Insertion Operator Test", insertionOperatorTest);
 
-    // POOR_MANS_TEST("Line selection matchup", patternOperatorsTest, {18, 33, 48, 51, 46, 3, 2, 1, 0}, {64, 61, 59,
-    // 58, 56, 45, 24, 4, 3});
-
     POOR_MANS_TEST("Test isWhiteSpace() function", bruteForceUnicodeWhitespaceUnitTest);
 
-    POOR_MANS_TEST("Test if default is to not overWrite existing files", testOutputFileExistsNoOverwrite);
+    POOR_MANS_TEST("Check default is to not overWrite existing files", testOutputFileExistsDefault);
 
     POOR_MANS_TEST("Test overwrite flag", testOverwriteFlag);
+
+    POOR_MANS_TEST("Capturing single line TSV rows", testCaptureSingleLineTSVRows);
+
+    POOR_MANS_TEST("Capturing multiple line TSV rows", testCaptureMultipleLineTSVRows);
+
+    POOR_MANS_TEST("Verify has mutations", verifyHasMutations);
+
+    POOR_MANS_TEST("Check TSV indentation", indentationCheck);
+
+    POOR_MANS_TEST("Check quoted cell endings", checkQuotedCellEndings);
+
+    POOR_MANS_TEST("Verify has permutations", verifyHasPermutations);
+
+    POOR_MANS_TEST("Check terminating quote exception", checkTerminatingQuoteException);
+
+    POOR_MANS_TEST("Verify grouping", verifyGrouping, "./ioFiles/specialChars/grouping/specialChars.tsv");
 
     printFailedTestResults();
 

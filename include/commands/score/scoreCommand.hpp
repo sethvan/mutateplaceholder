@@ -46,6 +46,6 @@ void validateScoreArgs(CLIOptions *opts, std::vector<std::string> *nonpositional
 
 void doScoreAction(CLIOptions *opts, std::vector<std::string> *nonpositionals);
 
-ParseArgvStatusCode execScore(CLIOptions *opts, std::vector<std::string> *nonpositionals);
+ParseArgvStatusCode execScore(CLIOptions *opts, std::vector<std::string> *nonpositional);
 
 #endif  //_INCLUDED_COMMANDS_SCORE_HPP

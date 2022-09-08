@@ -46,7 +46,10 @@ MutationsSelector::MutationsSelector(CLIOptions* _opts, PossibleMutVec& _possibl
 
 SelectedMutVec& MutationsSelector::getSelectedMutations() {
     selectMutations();
-    std::cout << selectedMutations.size() << " possible mutations have been selected" << std::endl;
+    if (PrintProcessStatusEnabled) {
+        std::cout << selectedMutations.size() << " possible mutations have been selected" << std::endl;
+    }
+
     return selectedMutations;
 }
 
@@ -101,7 +104,7 @@ void MutationsSelector::setSeedArray() {
         if (!parseHexString(seedString.c_str(), seedArray.data(), SEED_SIZE_BYTES)) {
             throw InvalidSeedException(" Error : Seed being passed in is not valid hexidecimal number");
         }
-        std::cout << "Using provided seed: " << seedString << std::endl;
+        if (PrintProcessStatusEnabled) { std::cout << "Using provided seed: " << seedString << std::endl; }
     }
     else {
         seedArray = generateSeed();
@@ -109,7 +112,7 @@ void MutationsSelector::setSeedArray() {
         if (!writeHexString((const char*)seedArray.data(), hexSeedString, SEED_SIZE_BYTES))
             throw InvalidSeedException(" Error: Failed to write out a string as hexadecimal");
         opts->setSeed((char*)hexSeedString);
-        std::cout << "Using generated seed: " << hexSeedString << std::endl;
+        if (PrintProcessStatusEnabled) { std::cout << "Using generated seed: " << hexSeedString << std::endl; }
     }
 }
 

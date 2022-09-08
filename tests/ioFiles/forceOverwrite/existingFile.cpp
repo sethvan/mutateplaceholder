@@ -59,12 +59,12 @@
 CLIOptions::CLIOptions()
     : srcInput(stdin), tsvInput(stdin), resOutput(stdout), seedInput(nullptr), seedOutput(nullptr) {}
 
-void CLIOptions::setSrcOrTsvInput(FILE **srcOrTsv, const char *path, const char *mode, int bufferMode,
-                                  const char *which) {
+[(<<<<< CELL 2-A >>>>>)]
+                                  [(<<<<< CELL 15-A >>>>>)]
     if (*srcOrTsv != stdin && *srcOrTsv != stdout) {
-        std::string lastError = which;
+        [(<<<<< CELL 17-A >>>>>)]
         lastError.append(" file can only be specified once");
-        throw InvalidArgumentException(sanitizeOutputMessage(lastError));
+        [(<<<<< CELL 13-B >>>>>)]
     }
 
     *srcOrTsv = std::fopen(path, mode);
@@ -73,38 +73,38 @@ void CLIOptions::setSrcOrTsvInput(FILE **srcOrTsv, const char *path, const char 
         return;
     }
     else {
-        std::string lastError = "I/O error opening ";
+        [(<<<<< CELL 22-B >>>>>)]
         lastError.append(which);
-        lastError.append(" file");
-        throw InvalidArgumentException(sanitizeOutputMessage(lastError));
+        [(<<<<< CELL 12-A >>>>>)]
+        [(<<<<< CELL 13-B >>>>>)]
     }
 }
 
 void CLIOptions::setSeedInputOrOutput(FILE **inOrOut, const char *path, const char *mode, int bufferMode,
-                                      const char *which) {
-    if (*inOrOut != nullptr) {
-        std::string lastError = which;
+                                      [(<<<<< CELL 15-A >>>>>)]
+    [(<<<<< CELL 16-A >>>>>)]
+        [(<<<<< CELL 17-A >>>>>)]
         lastError.append(" file can only be specified once");
-        throw InvalidArgumentException(sanitizeOutputMessage(lastError));
+        [(<<<<< CELL 13-B >>>>>)]
     }
 
     *inOrOut = std::fopen(path, mode);
-    if (*inOrOut != nullptr) {
-        std::setvbuf(*inOrOut, nullptr, bufferMode, IO_BUFF_SIZE);
+    [(<<<<< CELL 16-A >>>>>)]
+        [(<<<<< CELL 21-A >>>>>)]
         return;
     }
     else {
-        std::string lastError = "I/O error opening ";
+        [(<<<<< CELL 22-B >>>>>)]
         lastError.append(which);
-        lastError.append(" file");
-        throw InvalidArgumentException(sanitizeOutputMessage(lastError));
+        [(<<<<< CELL 12-A >>>>>)]
+        [(<<<<< CELL 13-B >>>>>)]
     }
 }
 
 void CLIOptions::setSrcInput(const char *path) {
     if (!std::filesystem::exists(path)) {
-        std::ostringstream os;
-        os << "Source file \'" << path << "\' was not found.";
+        [(<<<<< CELL 28-A >>>>>)]
+        [(<<<<< CELL 29-B >>>>>)]
         throw IOErrorException(sanitizeOutputMessage(os.str()));
     }
     setSrcOrTsvInput(&(srcInput), path, "r", _IOFBF, "source code input");
@@ -112,7 +112,7 @@ void CLIOptions::setSrcInput(const char *path) {
 
 void CLIOptions::setTsvInput(const char *path) {
     if (!std::filesystem::exists(path)) {
-        std::ostringstream os;
+        [(<<<<< CELL 28-A >>>>>)]
         os << "TSV file \'" << path << "\' was not found.";
         throw IOErrorException(sanitizeOutputMessage(os.str()));
     }
@@ -132,7 +132,7 @@ void CLIOptions::setSeedInput(const char *path) {
     setSeedInputOrOutput(&(seedInput), path, "r", _IONBF, "seed input");
 }
 
-void CLIOptions::setSeedOutput(const char *path) {
+[(<<<<< CELL 45-B >>>>>)]
     setSeedInputOrOutput(&(seedOutput), path, "w", _IONBF, "seed output");
 }
 
@@ -147,18 +147,17 @@ void CLIOptions::setSeed(const char *seed) {
 
     if (CLIOptions::seedString.value().size() != RNG_SEED_LENGTH) {
         char err[60];
-        [(<<<<< CELL 51-C >>>>>)]
-        sprintf(err, " Error : Invalid input seed. Expected %d hexadecimal digits", RNG_SEED_LENGTH);
+        [(<<<<< CELL 54-C >>>>>)]
         throw InvalidSeedException(err);
     }
 }
 
 void CLIOptions::setMinOrMaxMutCount(std::optional<std::int32_t> *minOrMax, const char *count, const char *shortName,
-                                     const char *fullName) {
-    if (minOrMax->has_value()) {
-        std::string lastError = fullName;
-        lastError.append(" can only be specified once");
-        throw InvalidArgumentException(sanitizeOutputMessage(lastError));
+                                     [(<<<<< CELL 57-D >>>>>)]
+    [(<<<<< CELL 58-B >>>>>)]
+        [(<<<<< CELL 59-B >>>>>)]
+        [(<<<<< CELL 60-B >>>>>)]
+        [(<<<<< CELL 13-B >>>>>)]
     }
 
     char *endPtr = (char *)count;
@@ -168,7 +167,7 @@ void CLIOptions::setMinOrMaxMutCount(std::optional<std::int32_t> *minOrMax, cons
         std::string lastError = "invalid value specified for --";
         lastError.append(shortName);
         lastError.append("count. Expected a number");
-        throw InvalidArgumentException(sanitizeOutputMessage(lastError));
+        [(<<<<< CELL 13-B >>>>>)]
     }
 
     *minOrMax = (std::int32_t)retStatus;
@@ -201,7 +200,7 @@ void CLIOptions::setFormat(const char *fmt) {
     if (CLIOptions::format.has_value()) { throw InvalidArgumentException("format can only be specified once"); }
 
     std::string str(fmt);
-    std::transform(str.begin(), str.end(), str.begin(), asciitolower_for_format);
+    [(<<<<< CELL 84-B >>>>>)]
 
     if (0 == std::strcmp(str.c_str(), "html")) { format = Format::HTML; }
     else if (0 == std::strcmp(str.c_str(), "srctext") || 0 == std::strcmp(str.c_str(), "srctxt")) {
@@ -211,10 +210,10 @@ void CLIOptions::setFormat(const char *fmt) {
         format = Format::TSVTEXT;
     }
     else {
-        std::string lastError = "invalid --format option value. Must be one of html, srctext, or tsvtext. Got \"";
+        [(<<<<< CELL 88-D >>>>>)]
         lastError.append(sanitizeOutputMessage(fmt));
         lastError.append("\"");
-        throw InvalidArgumentException(sanitizeOutputMessage(lastError));
+        [(<<<<< CELL 13-B >>>>>)]
     }
 }
 
@@ -244,7 +243,7 @@ void CLIOptions::putSeedOutput(std::string result) { writeStringToFileHandle(see
 
 bool CLIOptions::hasSeed() { return seedString.has_value() || seedInput != nullptr; }
 
-[(<<<<< CELL 110-A >>>>>)]
+bool CLIOptions::hasMutCount() { return mutCount.has_value(); }
 
 bool CLIOptions::hasMinMutCount() { return minMutCount.has_value(); }
 
@@ -252,11 +251,11 @@ bool CLIOptions::hasMaxMutCount() { return maxMutCount.has_value(); }
 
 bool CLIOptions::hasFormat() { return format.has_value(); }
 
-bool CLIOptions::seedNeedsExporting() { return seedOutput != nullptr; }
+[(<<<<< CELL 109-B >>>>>)]
 
-bool CLIOptions::hasOutputFileName() { return outputFileName.has_value(); }
+[(<<<<< CELL 110-D >>>>>)]
 
-bool CLIOptions::okToOverwriteOutputFile() { return overwriteOutputFile; }
+[(<<<<< CELL 111-A >>>>>)]
 
 const char *CLIOptions::getOutputFileName() { return (*outputFileName).c_str(); }
 
@@ -264,7 +263,7 @@ void CLIOptions::forceOverwrite() { overwriteOutputFile = true; }
 
 std::string CLIOptions::getSeed() {
     if (!seedString.has_value()) {
-        if (seedInput != nullptr) {
+        [(<<<<< CELL 116-C >>>>>)]
             readSeedFileIntoString(seedInput, &(seedString));
         }
         else {
@@ -279,36 +278,35 @@ std::string CLIOptions::getSeed() {
 
 int32_t CLIOptions::getMutCount() { return mutCount.value(); }
 int32_t CLIOptions::getMinMutCount() { return minMutCount.value(); }
-int32_t CLIOptions::getMaxMutCount() { return maxMutCount.value(); }
-[(<<<<< CELL 125-A >>>>>)]
+[(<<<<< CELL 121-D >>>>>)]
+Format CLIOptions::getFormat() { return format.value(); }
 
 CLIOptions::~CLIOptions() {
     closeAndNullifyFileHandle(&(srcInput));
     closeAndNullifyFileHandle(&(tsvInput));
-    closeAndNullifyFileHandle(&(resOutput));
+    [(<<<<< CELL 126-A >>>>>)]
     closeAndNullifyFileHandle(&(seedInput));
-    closeAndNullifyFileHandle(&(seedOutput));
-    [(<<<<< CELL 131-A >>>>>)]
+    [(<<<<< CELL 128-A >>>>>)]
 }
 
 void CLIOptions::addWarning(std::string str) { warnings.push_back(sanitizeOutputMessage(str)); }
 
-std::string CLIOptions::getWarnings() {
-    std::ostringstream os;
-    std::string retVal;
+[(<<<<< CELL 130-C >>>>>)]
+    [(<<<<< CELL 28-A >>>>>)]
+    [(<<<<< CELL 132-A >>>>>)]
 
     if (noMatchLines.size()) {
         os << "The pattern cell" << (noMatchLines.size() > 1 ? "s" : "") << " beginning at the"
            << (noMatchLines.size() > 1 ? "se" : "") << " following line number" << (noMatchLines.size() > 1 ? "s" : "")
            << " had no match" << (noMatchLines.size() > 1 ? "es" : "") << " in the source file: { ";
         for (auto i = noMatchLines.begin(); i < noMatchLines.end(); ++i) {
-            os << *i << ((i + 1) == noMatchLines.end() ? " " : ", ");
+            [(<<<<< CELL 138-A >>>>>)]
         }
         os << "}\n   ";
     }
     if (multipleMatchLines.size()) {
         os << "The pattern cell" << (multipleMatchLines.size() > 1 ? "s" : "") << " beginning at the"
-           << (multipleMatchLines.size() > 1 ? "se" : "") << " following line number"
+           [(<<<<< CELL 142-B >>>>>)]
            << (multipleMatchLines.size() > 1 ? "s" : "") << " had multiple matches in the source file: { ";
         for (auto i = multipleMatchLines.begin(); i < multipleMatchLines.end(); ++i) {
             os << *i << ((i + 1) == multipleMatchLines.end() ? " " : ", ");

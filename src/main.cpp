@@ -40,6 +40,8 @@
 #include "common.hpp"
 #include "excepts.hpp"
 
+const bool PrintProcessStatusEnabled = true;  // to get status of process messages in classes
+
 using commandsMap =
     const std::unordered_map<std::string_view, ParseArgvStatusCode (*)(CLIOptions *, std::vector<std::string> *)>;
 
