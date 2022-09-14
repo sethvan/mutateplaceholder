@@ -66,6 +66,7 @@ class CLIOptions {
     std::optional<std::string> srcString;
     std::optional<std::string> tsvString;
     std::optional<std::string> outputFileName;
+    std::optional<std::string> inputFileName;
     // std::optional<std::string> resString;
 
     std::optional<std::int32_t> mutCount;
@@ -115,6 +116,8 @@ class CLIOptions {
     bool hasMinMutCount();
     bool hasMaxMutCount();
     bool hasOutputFileName();
+    bool hasInputFileName();
+    bool hasSrcString();
 
     bool hasFormat();
 
@@ -128,6 +131,7 @@ class CLIOptions {
     int32_t getMinMutCount();
     int32_t getMaxMutCount();
     const char* getOutputFileName();
+    const char* getInputFileName();
 
     Format getFormat();
 

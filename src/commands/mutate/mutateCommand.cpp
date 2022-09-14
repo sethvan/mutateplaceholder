@@ -68,8 +68,19 @@ std::string printMutateHelp(void) { return printMutateHelp(""); }
 
 void validateMutateArgs(CLIOptions *opts, std::vector<std::string> *nonpositionals) {
     if (opts->hasFormat()) throw InvalidArgumentException("Cannot use the --format option in mutate mode");
+
     if (1 < nonpositionals->size())
         throw InvalidArgumentException("mutate mode does not accept extra non-positional arguments");
+
+    std::string input = opts->getSrcString();
+
+    if (!input.length()) {
+        std::ostringstream os;
+        const char *path = opts->getInputFileName();
+        os << "Input file \"" << path << "\" has no content.";
+
+        throw InvalidArgumentException(sanitizeOutputMessage(os.str()));
+    }
 
     if (opts->hasOutputFileName()) {
         const char *path = opts->getOutputFileName();

@@ -1,6 +1,6 @@
 int a = 0;			int a = 10;		int a = 20;
 ^?int b = 1;		int b = 21;		int b = 31;
 ^^?int c = 2;		int c = 32;		int c = 42;
-^^^int d = 3;		int d = 43;		int d = 53;
+^^int d = 3;		int d = 43;		int d = 53;
 ^+int e = 4;		e = 54;			e = 64;
 @?int f = 5;		int f = 65;		int f = 75;

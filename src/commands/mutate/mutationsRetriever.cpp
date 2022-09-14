@@ -239,8 +239,9 @@ void MutationsRetriever::checkNesting() {
     auto throwInvalidNesting = [&]() {
         std::ostringstream os;
         os << " Error : Invalid group nesting syntax in TSV File.\n"
-           << "Notice :\n     Nested pattern cell in row number " << (it + 1)->data.lineNumber
-           << " has no corresponding parent." << std::endl;
+           << "Notice :\n     Nested pattern cell in row number "
+           << (it == possibleMutations.begin() ? it : it + 1)->data.lineNumber << " has no corresponding parent."
+           << std::endl;
         throw TSVParsingException(os.str());
     };
     if (it->data.depth > 1) throwInvalidNesting();

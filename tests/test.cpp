@@ -503,7 +503,7 @@ static bool testMutationsRetrieverException(const char* tsvFile, std::string exp
     bool caughtException = false;
 
     try {
-        mRetriever.capturePossibleMutations();
+        mRetriever.getPossibleMutations();
     } catch (const std::exception& ex) {
         errMsg = std::string(ex.what());
         caughtException = true;
@@ -582,6 +582,21 @@ static bool verifyGrouping(const char* tsvFile) {
     return false;
 }
 
+static bool checkNesting() {
+    const char* tsvFile = "./ioFiles/specialChars/nesting/specialChars.tsv";
+    std::ostringstream os;
+    os << " Error : Invalid group nesting syntax in TSV File.\n"
+       << "Notice :\n     Nested pattern cell in row number 4 has no corresponding parent." << std::endl;
+    std::string expected{os.str()};
+
+    return testMutationsRetrieverException(tsvFile, expected);
+}
+
+static bool verifyNegatedSelection(const char* tsvFile) {
+    patternOperatorsTest(tsvFile, {}, {});
+    patternOperatorsTest(tsvFile, {}, {});
+}
+
 int main(int argc, const char** argv) {
     (void)argc;
     (void)argv;
@@ -617,6 +632,11 @@ int main(int argc, const char** argv) {
     POOR_MANS_TEST("Check terminating quote exception", checkTerminatingQuoteException);
 
     POOR_MANS_TEST("Verify grouping", verifyGrouping, "./ioFiles/specialChars/grouping/specialChars.tsv");
+
+    POOR_MANS_TEST("Check nesting", checkNesting);
+
+    POOR_MANS_TEST("Verify negated selection", verifyNegatedSelection,
+                   "./ioFiles/specialChars/negating/specialChars.tsv");
 
     printFailedTestResults();
 

@@ -104,6 +104,7 @@ void CLIOptions::setSeedInputOrOutput(FILE **inOrOut, const char *path, const ch
 }
 
 void CLIOptions::setSrcInput(const char *path) {
+    inputFileName = std::string(path);
     if (!std::filesystem::exists(path)) {
         std::ostringstream os;
         os << "Source file \'" << path << "\' was not found.";
@@ -229,6 +230,11 @@ std::string CLIOptions::getSrcString() {
         initializeSrcTsvTogetherFromStdin(&(CLIOptions::srcString), &(CLIOptions::tsvString));
     }
     if (!CLIOptions::srcString.has_value()) {
+        if (srcInput == stdin) {
+            if (PrintProcessStatusEnabled) {
+                std::cout << "File path for input source file not specified, retrieving input content from stdin...\n";
+            }
+        }
         srcString = readWholeFileIntoString(CLIOptions::srcInput, "I/O error reading source code file");
     }
     return srcString.value();
@@ -263,9 +269,15 @@ bool CLIOptions::seedNeedsExporting() { return seedOutput != nullptr; }
 
 bool CLIOptions::hasOutputFileName() { return outputFileName.has_value(); }
 
+bool CLIOptions::hasInputFileName() { return inputFileName.has_value(); }
+
+bool CLIOptions::hasSrcString() { return srcString.has_value(); }
+
 bool CLIOptions::okToOverwriteOutputFile() { return overwriteOutputFile; }
 
 const char *CLIOptions::getOutputFileName() { return (*outputFileName).c_str(); }
+
+const char *CLIOptions::getInputFileName() { return (*inputFileName).c_str(); }
 
 void CLIOptions::forceOverwrite() { overwriteOutputFile = true; }
 
