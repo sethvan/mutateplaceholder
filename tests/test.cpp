@@ -592,10 +592,10 @@ static bool checkNesting() {
     return testMutationsRetrieverException(tsvFile, expected);
 }
 
-static bool verifyNegatedSelection(const char* tsvFile) {
-    patternOperatorsTest(tsvFile, {}, {});
-    patternOperatorsTest(tsvFile, {}, {});
-}
+// static bool verifyNegatedSelection(const char* tsvFile) {
+//     patternOperatorsTest(tsvFile, {}, {});
+//     patternOperatorsTest(tsvFile, {}, {});
+// }
 
 int main(int argc, const char** argv) {
     (void)argc;
@@ -635,8 +635,8 @@ int main(int argc, const char** argv) {
 
     POOR_MANS_TEST("Check nesting", checkNesting);
 
-    POOR_MANS_TEST("Verify negated selection", verifyNegatedSelection,
-                   "./ioFiles/specialChars/negating/specialChars.tsv");
+    // POOR_MANS_TEST("Verify negated selection", verifyNegatedSelection,
+    //                "./ioFiles/specialChars/negating/specialChars.tsv");
 
     printFailedTestResults();
 
