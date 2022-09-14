@@ -1,4 +1,4 @@
-*Note: This README is a work in progress still in its early stages*
+*Note: This README is a work in progress still in its early stages, currently only the mutate command is mostly complete*
 
 # mutateplaceholder
 As part of a larger project for testing the quality of one's unit tests, this CLI app takes possible mutations to apply to a source file and applies a randomly chosen selection of these mutations to that file. 
