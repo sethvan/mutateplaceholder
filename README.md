@@ -33,8 +33,8 @@ int a = 0;		int a = 10;		int a = 20;
 int sum = a + b;	int sum = a / b;	int sum = a * b;	int sum = a - b;
 const char* str="w";	const char* str="u";
 ```
-
-Pattern cells may be plain text or regex, and quoted or unquoted.
+Single line cells can be quoted or unquoted. Multi-line cells must be quoted.  
+Pattern cells may be plain text or regex. Permutation cells for a regex pattern cell may be regex or plain text.
 
 #### After capturing the TSV file's rows, the mutate command will randomly choose which mutations to apply.  
 A chacha random number generator is used for this.  
