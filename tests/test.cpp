@@ -572,14 +572,11 @@ static bool verifyHasMutations() {
 }
 
 static bool verifyGrouping(const char* tsvFile) {
-    patternOperatorsTest(tsvFile, {1}, {5, 1});
-    patternOperatorsTest(tsvFile, {2}, {5, 2, 1});
-    patternOperatorsTest(tsvFile, {3}, {5, 4, 3, 2, 1});
-    patternOperatorsTest(tsvFile, {4}, {5, 4, 3, 2, 1});
-    patternOperatorsTest(tsvFile, {5}, {5, 1});
-    patternOperatorsTest(tsvFile, {6}, {6, 5, 1});
-
-    return false;
+    // true will be returned if any of these tests return true
+    return 0 <
+           (0 + patternOperatorsTest(tsvFile, {1}, {5, 1}) + patternOperatorsTest(tsvFile, {2}, {5, 2, 1}) +
+            patternOperatorsTest(tsvFile, {3}, {5, 4, 3, 2, 1}) + patternOperatorsTest(tsvFile, {4}, {5, 4, 3, 2, 1}) +
+            patternOperatorsTest(tsvFile, {5}, {5, 1}) + patternOperatorsTest(tsvFile, {6}, {6, 5, 1}));
 }
 
 static bool checkNesting() {
