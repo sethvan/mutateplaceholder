@@ -20,7 +20,7 @@
  */
 
 #define printDatos()                                                                             \
-    std::cout << "lineNumber: " << it->data.lineNumber << ", depth: " << it->data.depth          \
+    std::cerr << "lineNumber: " << it->data.lineNumber << ", depth: " << it->data.depth          \
               << ", synced: " << it->data.isIndexSynced << ", optional: " << it->data.isOptional \
               << ", newLined: " << it->data.isNewLined << ", regex: " << it->data.isRegex        \
               << ", groupNumber: " << it->data.groupNumber << ", negated: " << it->data.mustPass << std::endl
@@ -46,9 +46,7 @@ MutationsSelector::MutationsSelector(CLIOptions* _opts, PossibleMutVec& _possibl
 
 SelectedMutVec& MutationsSelector::getSelectedMutations() {
     selectMutations();
-    if (PrintProcessStatusEnabled) {
-        std::cout << selectedMutations.size() << " possible mutations have been selected" << std::endl;
-    }
+    if (verbose) { std::cerr << selectedMutations.size() << " possible mutations have been selected" << std::endl; }
 
     return selectedMutations;
 }
@@ -59,7 +57,7 @@ void MutationsSelector::selectMutations() {
 
     bool negatedTest = possibleMutations[selectedIndexes[0]].data.mustPass;
 
-    // std::cout << "Size of PosMutVec: " << possibleMutations.size() << std::endl;
+    // std::cerr << "Size of PosMutVec: " << possibleMutations.size() << std::endl;
 
     std::vector<size_t> leaderIndexes{0};
     size_t newGroupNumber{0};
@@ -104,7 +102,7 @@ void MutationsSelector::setSeedArray() {
         if (!parseHexString(seedString.c_str(), seedArray.data(), SEED_SIZE_BYTES)) {
             throw InvalidSeedException(" Error : Seed being passed in is not valid hexidecimal number");
         }
-        if (PrintProcessStatusEnabled) { std::cout << "Using provided seed: " << seedString << std::endl; }
+        if (verbose) { std::cerr << "Using provided seed: " << seedString << std::endl; }
     }
     else {
         seedArray = generateSeed();
@@ -112,7 +110,7 @@ void MutationsSelector::setSeedArray() {
         if (!writeHexString((const char*)seedArray.data(), hexSeedString, SEED_SIZE_BYTES))
             throw InvalidSeedException(" Error: Failed to write out a string as hexadecimal");
         opts->setSeed((char*)hexSeedString);
-        if (PrintProcessStatusEnabled) { std::cout << "Using generated seed: " << hexSeedString << std::endl; }
+        if (verbose) { std::cerr << "Using generated seed: " << hexSeedString << std::endl; }
     }
 }
 

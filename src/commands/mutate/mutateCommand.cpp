@@ -29,6 +29,9 @@
 #include <filesystem>
 #include <sstream>
 
+#include "commands/mutate/mutationsRetriever.hpp"
+#include "commands/mutate/mutationsSelector.hpp"
+#include "commands/mutate/mutator.hpp"
 #include "excepts.hpp"
 
 std::string printMutateHelp(const char *indent) {
@@ -111,7 +114,7 @@ void doMutateAction(CLIOptions *opts, std::vector<std::string> *nonpositionals) 
 
     opts->putResOutput(outputString);
 
-    // std::cout << mutator.mutatedLines.size() << " mutations have been successfully applied across "
+    // std::cerr << mutator.mutatedLines.size() << " mutations have been successfully applied across "
     // 		<< mutator.mutatedLineCount << " lines" << std::endl;
 
     if (opts->seedNeedsExporting()) { opts->putSeedOutput(opts->getSeed()); }

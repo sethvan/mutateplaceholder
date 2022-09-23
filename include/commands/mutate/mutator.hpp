@@ -94,8 +94,8 @@ class Mutator {  // Made class for now, may change
 
     std::tuple<std::string, std::string> getPatternAndModifiers(size_t index, const SelectedMutation& sm);
 
-    std::set<std::string> getMatches(const std::string& pattern, const std::string& subject,
-                                     const std::string& modifiers);
+    std::set<std::string> getRegexMatches(const std::string& pattern, const std::string& subject,
+                                          const std::string& modifiers);
 
     std::vector<std::string> separateLinesIntoVector(std::string str);
 

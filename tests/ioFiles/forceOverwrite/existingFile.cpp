@@ -60,7 +60,7 @@ CLIOptions::CLIOptions()
     : srcInput(stdin), tsvInput(stdin), resOutput(stdout), seedInput(nullptr), seedOutput(nullptr) {}
 
 void CLIOptions::setSrcOrTsvInput(FILE **srcOrTsv, const char *path, const char *mode, int bufferMode,
-                                  const char *which) {
+                                  [(<<<<< CELL 15-A >>>>>)]
     if (*srcOrTsv != stdin && *srcOrTsv != stdout) {
         std::string lastError = which;
         lastError.append(" file can only be specified once");
@@ -69,7 +69,7 @@ void CLIOptions::setSrcOrTsvInput(FILE **srcOrTsv, const char *path, const char 
 
     *srcOrTsv = std::fopen(path, mode);
     if (*srcOrTsv != nullptr) {
-        std::setvbuf(*srcOrTsv, nullptr, bufferMode, IO_BUFF_SIZE);
+        [(<<<<< CELL 9-A >>>>>)]
         return;
     }
     else {
@@ -81,7 +81,7 @@ void CLIOptions::setSrcOrTsvInput(FILE **srcOrTsv, const char *path, const char 
 }
 
 void CLIOptions::setSeedInputOrOutput(FILE **inOrOut, const char *path, const char *mode, int bufferMode,
-                                      const char *which) {
+                                      [(<<<<< CELL 15-A >>>>>)]
     if (*inOrOut != nullptr) {
         std::string lastError = which;
         lastError.append(" file can only be specified once");
@@ -110,7 +110,7 @@ void CLIOptions::setSrcInput(const char *path) {
     setSrcOrTsvInput(&(srcInput), path, "r", _IOFBF, "source code input");
 }
 
-[(<<<<< CELL 32-C >>>>>)]
+void CLIOptions::setTsvInput(const char *path) {
     if (!std::filesystem::exists(path)) {
         std::ostringstream os;
         os << "TSV file \'" << path << "\' was not found.";
@@ -132,7 +132,7 @@ void CLIOptions::setSeedInput(const char *path) {
     setSeedInputOrOutput(&(seedInput), path, "r", _IONBF, "seed input");
 }
 
-[(<<<<< CELL 45-A >>>>>)]
+void CLIOptions::setSeedOutput(const char *path) {
     setSeedInputOrOutput(&(seedOutput), path, "w", _IONBF, "seed output");
 }
 
@@ -152,7 +152,7 @@ void CLIOptions::setSeed(const char *seed) {
     }
 }
 
-void CLIOptions::setMinOrMaxMutCount(std::optional<std::int32_t> *minOrMax, const char *count, const char *shortName,
+[(<<<<< CELL 56-A >>>>>)]
                                      const char *fullName) {
     if (minOrMax->has_value()) {
         std::string lastError = fullName;
@@ -172,7 +172,7 @@ void CLIOptions::setMinOrMaxMutCount(std::optional<std::int32_t> *minOrMax, cons
 
     *minOrMax = (std::int32_t)retStatus;
 
-    [(<<<<< CELL 69-A >>>>>)]
+    if (mutCount.has_value() && (minMutCount.has_value() || maxMutCount.has_value())) {
         throw InvalidArgumentException(
             "option groups --count and --max-count/--min-count are mutually exclusive. Please choose one group");
     }
@@ -196,10 +196,10 @@ static char asciitolower_for_format(char in) {
     return in;
 }
 
-[(<<<<< CELL 81-A >>>>>)]
+void CLIOptions::setFormat(const char *fmt) {
     if (CLIOptions::format.has_value()) { throw InvalidArgumentException("format can only be specified once"); }
 
-    [(<<<<< CELL 83-A >>>>>)]
+    std::string str(fmt);
     std::transform(str.begin(), str.end(), str.begin(), asciitolower_for_format);
 
     if (0 == std::strcmp(str.c_str(), "html")) { format = Format::HTML; }
@@ -211,13 +211,13 @@ static char asciitolower_for_format(char in) {
     }
     else {
         std::string lastError = "invalid --format option value. Must be one of html, srctext, or tsvtext. Got \"";
-        [(<<<<< CELL 89-C >>>>>)]
+        lastError.append(sanitizeOutputMessage(fmt));
         lastError.append("\"");
         throw InvalidArgumentException(sanitizeOutputMessage(lastError));
     }
 }
 
-[(<<<<< CELL 92-A >>>>>)]
+std::string CLIOptions::getSrcString() {
     if (CLIOptions::srcInput == stdin && CLIOptions::tsvInput == stdin) {
         initializeSrcTsvTogetherFromStdin(&(CLIOptions::srcString), &(CLIOptions::tsvString));
     }
@@ -229,7 +229,7 @@ static char asciitolower_for_format(char in) {
 
 std::string CLIOptions::getTsvString() {
     if (srcInput == stdin && tsvInput == stdin) { initializeSrcTsvTogetherFromStdin(&(srcString), &(tsvString)); }
-    [(<<<<< CELL 99-A >>>>>)]
+    if (!tsvString.has_value()) {
         tsvString = readWholeFileIntoString(tsvInput, "I/O error reading TSV mutations file");
     }
     return tsvString.value();
@@ -243,7 +243,7 @@ void CLIOptions::putSeedOutput(std::string result) { writeStringToFileHandle(see
 
 bool CLIOptions::hasSeed() { return seedString.has_value() || seedInput != nullptr; }
 
-bool CLIOptions::hasMutCount() { return mutCount.has_value(); }
+[(<<<<< CELL 105-A >>>>>)]
 
 bool CLIOptions::hasMinMutCount() { return minMutCount.has_value(); }
 
@@ -251,7 +251,7 @@ bool CLIOptions::hasMaxMutCount() { return maxMutCount.has_value(); }
 
 bool CLIOptions::hasFormat() { return format.has_value(); }
 
-[(<<<<< CELL 109-A >>>>>)]
+bool CLIOptions::seedNeedsExporting() { return seedOutput != nullptr; }
 
 bool CLIOptions::hasOutputFileName() { return outputFileName.has_value(); }
 
@@ -263,7 +263,7 @@ void CLIOptions::forceOverwrite() { overwriteOutputFile = true; }
 
 std::string CLIOptions::getSeed() {
     if (!seedString.has_value()) {
-        [(<<<<< CELL 116-C >>>>>)]
+        if (seedInput != nullptr) {
             readSeedFileIntoString(seedInput, &(seedString));
         }
         else {
@@ -289,13 +289,13 @@ Format CLIOptions::getFormat() { return format.value(); }
     closeAndNullifyFileHandle(&(seedOutput));
 }
 
-[(<<<<< CELL 129-A >>>>>)]
+void CLIOptions::addWarning(std::string str) { warnings.push_back(sanitizeOutputMessage(str)); }
 
 std::string CLIOptions::getWarnings() {
     std::ostringstream os;
     std::string retVal;
 
-    [(<<<<< CELL 133-B >>>>>)]
+    if (noMatchLines.size()) {
         os << "The pattern cell" << (noMatchLines.size() > 1 ? "s" : "") << " beginning at the"
            << (noMatchLines.size() > 1 ? "se" : "") << " following line number" << (noMatchLines.size() > 1 ? "s" : "")
            << " had no match" << (noMatchLines.size() > 1 ? "es" : "") << " in the source file: { ";
@@ -311,14 +311,14 @@ std::string CLIOptions::getWarnings() {
         for (auto i = multipleMatchLines.begin(); i < multipleMatchLines.end(); ++i) {
             os << *i << ((i + 1) == multipleMatchLines.end() ? " " : ", ");
         }
-        [(<<<<< CELL 146-A >>>>>)]
+        os << "}\n";
     }
-    [(<<<<< CELL 147-A >>>>>)]
+    if (warnings.size()) {
         for (const auto &str : warnings) { os << "   " << str << std::endl; }
         os << std::endl;
     }
     if ((os.str().size())) {
-        [(<<<<< CELL 151-B >>>>>)]
+        std::string retVal{"\x1B[33mWarnings:\x1B[0m\n   "};
         retVal += os.str();
         return retVal;
     }

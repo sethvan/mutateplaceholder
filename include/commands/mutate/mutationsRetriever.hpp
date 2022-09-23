@@ -21,7 +21,6 @@
 #ifndef _INCLUDED_MUTATIONSRETRIEVER_HPP_
 #define _INCLUDED_MUTATIONSRETRIEVER_HPP_
 
-#include <map>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -43,35 +42,12 @@ class MutationsRetriever {
 
     void categorizeMutations();
 
-    std::string getPatternOrPermutation(std::string::iterator& it, const std::string::iterator& end, int& lineNumber,
-                                        int rowBeginningLine);
-
-    static bool noPermutationsInLine(std::string::iterator it, const std::string::iterator& end);
-
-    static void checkIndentation(std::string::iterator it, const std::string::iterator& end, int& lineNumber);
-
-    static void verifyHasPermutation(std::string::iterator it, const std::string::iterator& end, int& lineNumber,
-                                     int rowBeginningLine);
-
-    static void throwInvalidCharException(std::string::iterator it, const std::string::iterator& end, int index,
-                                          int lineNumber, int rowBeginningLine);
-
-    static void throwTerminatingQuoteException(int lineNumber);
-
-    static void throwEmptyPatternException(int lineNumber);
-
-    static void caseCaret(std::string::iterator patIt, PossibleMutVec::iterator& pmIt);
-
-    static void caseSynced(std::string::iterator patIt, PossibleMutVec::iterator& pmIt);
-
-    static void caseSpecialChars(std::string::iterator patIt, PossibleMutVec::iterator& pmIt);
-
-    std::vector<TSVRow> getRows();
-
     void checkNesting();
 
    public:
     MutationsRetriever(std::string tsvInput);
+
+    std::vector<TSVRow> getRows();
 
     PossibleMutVec& getPossibleMutations();
 };

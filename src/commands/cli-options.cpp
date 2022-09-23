@@ -39,6 +39,7 @@
 #include "commands/cli-options.hpp"
 
 #include <errno.h>
+#include <unistd.h>
 
 #include <algorithm>
 #include <climits>
@@ -227,13 +228,16 @@ void CLIOptions::setFormat(const char *fmt) {
 
 std::string CLIOptions::getSrcString() {
     if (CLIOptions::srcInput == stdin && CLIOptions::tsvInput == stdin) {
+        if (isatty(fileno(CLIOptions::srcInput)) && isatty(fileno(CLIOptions::tsvInput))) {
+            std::cerr << "File paths for source and tsv files not specified,  retrieving input content from stdin...\n";
+        }
         initializeSrcTsvTogetherFromStdin(&(CLIOptions::srcString), &(CLIOptions::tsvString));
     }
+
     if (!CLIOptions::srcString.has_value()) {
-        if (srcInput == stdin) {
-            if (PrintProcessStatusEnabled) {
-                std::cout << "File path for input source file not specified, retrieving input content from stdin...\n";
-            }
+        if (isatty(fileno(CLIOptions::srcInput))) {
+            std::cerr
+                << "File path for input source file not specified, attempting to retrieve content from stdin...\n";
         }
         srcString = readWholeFileIntoString(CLIOptions::srcInput, "I/O error reading source code file");
     }
@@ -241,8 +245,16 @@ std::string CLIOptions::getSrcString() {
 }
 
 std::string CLIOptions::getTsvString() {
-    if (srcInput == stdin && tsvInput == stdin) { initializeSrcTsvTogetherFromStdin(&(srcString), &(tsvString)); }
+    if (CLIOptions::srcInput == stdin && CLIOptions::tsvInput == stdin) {
+        if (isatty(fileno(CLIOptions::srcInput)) && isatty(fileno(CLIOptions::tsvInput))) {
+            std::cerr << "File paths for source and tsv files not specified,  retrieving input content from stdin...\n";
+        }
+        initializeSrcTsvTogetherFromStdin(&(CLIOptions::srcString), &(CLIOptions::tsvString));
+    }
     if (!tsvString.has_value()) {
+        if (isatty(fileno(CLIOptions::tsvInput))) {
+            std::cerr << "File path for tsv file not specified, attempting to retrieve content from stdin...\n";
+        }
         tsvString = readWholeFileIntoString(tsvInput, "I/O error reading TSV mutations file");
     }
     return tsvString.value();
@@ -342,7 +354,7 @@ std::string CLIOptions::getWarnings() {
         os << std::endl;
     }
     if ((os.str().size())) {
-        std::string retVal{"\x1B[33mWarnings:\x1B[0m\n   "};
+        std::string retVal{"\n\x1B[33mWarnings:\x1B[0m\n   "};
         retVal += os.str();
         return retVal;
     }

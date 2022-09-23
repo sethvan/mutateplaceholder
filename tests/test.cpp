@@ -46,18 +46,18 @@
 #include "commands/cli-parser.hpp"
 #include "commands/highlight/highlightCommand.hpp"
 #include "commands/mutate/mutateCommand.hpp"
+#include "commands/mutate/mutationsRetriever.hpp"
+#include "commands/mutate/mutationsSelector.hpp"
 #include "commands/score/scoreCommand.hpp"
 #include "commands/validate/validateCommand.hpp"
 #include "common.hpp"
 #undef protected
 #undef private
 #undef class
-#include "commands/mutate/mutationsRetriever.hpp"
-#include "commands/mutate/mutationsSelector.hpp"
 #include "excepts.hpp"
 
 // (extern variable from common.hpp) do not need to see process status messages for these tests
-const bool PrintProcessStatusEnabled = false;
+const bool verbose = false;
 
 // template <typename T>
 // std::ostream& operator<<(std::ostream& os, const std::vector<T>& vec ) {

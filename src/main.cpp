@@ -26,9 +26,9 @@
 #include <cstring>
 #include <exception>
 #include <iostream>
-#include <map>
 #include <string>
 #include <string_view>
+#include <unordered_map>
 #include <vector>
 
 #include "commands/cli-options.hpp"
@@ -40,7 +40,7 @@
 #include "common.hpp"
 #include "excepts.hpp"
 
-const bool PrintProcessStatusEnabled = true;  // to get status of process messages in classes
+const bool verbose = true;  // to get status of process messages in classes
 
 using commandsMap =
     const std::unordered_map<std::string_view, ParseArgvStatusCode (*)(CLIOptions *, std::vector<std::string> *)>;

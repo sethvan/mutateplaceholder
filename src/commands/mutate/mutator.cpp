@@ -88,7 +88,7 @@ void Mutator::regexReplace(std::string& subject, const SelectedMutation& sm) {
     }
 
     auto [pattern, modifiers] = getPatternAndModifiers(index, sm);
-    std::set<std::string> matches = getMatches(pattern, subject, modifiers);
+    std::set<std::string> matches = getRegexMatches(pattern, subject, modifiers);
 
     for (const auto& str : matches) {
         std::string regexMutation = jp::Regex(pattern).replace(str, sm.mutation, modifiers);
@@ -316,8 +316,8 @@ std::tuple<std::string, std::string> Mutator::getPatternAndModifiers(size_t inde
     return {pattern, modifiers};
 }
 
-std::set<std::string> Mutator::getMatches(const std::string& pattern, const std::string& subject,
-                                          const std::string& modifiers) {
+std::set<std::string> Mutator::getRegexMatches(const std::string& pattern, const std::string& subject,
+                                               const std::string& modifiers) {
     jp::VecNum vec_num;
     jp::Regex re(pattern);
     jp::RegexMatch rr;
