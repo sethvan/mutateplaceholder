@@ -87,7 +87,9 @@ static std::string JSON_stringify_ascii(std::string input) {
     *outPtr++ = '"';
     for (std::size_t i = 0; i < inLen; i++) {
         char cur = input[i];
-        if (31 < cur && cur < 127) { *outPtr++ = cur; }
+        if (31 < cur && cur < 127) {
+            *outPtr++ = cur;
+        }
         else if (cur == '\n') {
             *outPtr++ = '\\';
             *outPtr++ = 'n';
@@ -142,7 +144,9 @@ static std::ostream& operator<<(std::ostream& out, const std::vector<T>& v) {
         // std::ranges::copy(v, std::ostream_iterator<char>(out, ", "));
         bool isFirst = true;
         for (const auto& valueCur : v) {
-            if (isFirst) { isFirst = false; }
+            if (isFirst) {
+                isFirst = false;
+            }
             else {
                 out << ", ";
             }
@@ -164,7 +168,9 @@ static std::ostream& operator<<(std::ostream& out, const std::vector<T>& v) {
 }
 
 void printFailedTestResults(void) {
-    if (0 < failedTestArray.size()) { printf("\n"); }
+    if (0 < failedTestArray.size()) {
+        printf("\n");
+    }
 
     for (const FailedTest& value : failedTestArray) {
         printf("\n\x1B[31mFAIL\033[0m %s\n%s", value.first, value.second.c_str());
@@ -172,7 +178,9 @@ void printFailedTestResults(void) {
 
     printf("\n");
 
-    if (passedTests == totalTests) { printf("\n\x1B[92mAll %zu tests are passing!\033[0m\n", totalTests); }
+    if (passedTests == totalTests) {
+        printf("\n\x1B[92mAll %zu tests are passing!\033[0m\n", totalTests);
+    }
     else if (0 < passedTests) {
         printf("\n\x1B[93m%zu/%zu tests are passing\033[0m\n", passedTests, totalTests);
     }
@@ -182,15 +190,17 @@ void printFailedTestResults(void) {
 }
 
 // Notice that `true` indicates error and `false` indicates okay
-#define POOR_MANS_TEST(name, function, ...)                                               \
-    do {                                                                                  \
-        ++totalTests;                                                                     \
-        testLog = std::ostringstream();                                                   \
-        if (function(__VA_ARGS__)) { failedTestArray.emplace_back(name, testLog.str()); } \
-        else {                                                                            \
-            ++passedTests;                                                                \
-            printf("\x1B[32mPASS\033[0m %s\n", name);                                     \
-        }                                                                                 \
+#define POOR_MANS_TEST(name, function, ...)                    \
+    do {                                                       \
+        ++totalTests;                                          \
+        testLog = std::ostringstream();                        \
+        if (function(__VA_ARGS__)) {                           \
+            failedTestArray.emplace_back(name, testLog.str()); \
+        }                                                      \
+        else {                                                 \
+            ++passedTests;                                     \
+            printf("\x1B[32mPASS\033[0m %s\n", name);          \
+        }                                                      \
     } while (false)
 
 #define INDENT "    "
@@ -347,7 +357,9 @@ static bool patternOperatorsTest(const char* tsvFile, std::vector<size_t> passed
     mSelector.selectedIndexes = passedLines;
     SelectedMutVec sm = mSelector.getSelectedMutations();
     std::vector<size_t> selectedLines{};
-    for (const auto& e : sm) { selectedLines.push_back(e.data.lineNumber); }
+    for (const auto& e : sm) {
+        selectedLines.push_back(e.data.lineNumber);
+    }
 
     testLog << INDENT "Expect the following lines to be selected: " << expectedLines << "\n";
     testLog << INDENT " Received the following lines as selected: " << selectedLines << "\n";

@@ -41,8 +41,14 @@ struct SelectedLineInfo {
     size_t lineNumber;
 
     SelectedLineInfo()
-        : isRegex{0}, isNewLined{0}, isIndexSynced{0}, isOptional{0}, mustPass{0}, depth{0}, groupNumber{0}, lineNumber{
-                                                                                                                 0} {}
+        : isRegex{0},
+          isNewLined{0},
+          isIndexSynced{0},
+          isOptional{0},
+          mustPass{0},
+          depth{0},
+          groupNumber{0},
+          lineNumber{0} {}
 };
 
 struct TsvFileLine {

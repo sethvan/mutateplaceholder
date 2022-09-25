@@ -34,7 +34,7 @@
 #include "commands/mutate/mutator.hpp"
 #include "excepts.hpp"
 
-std::string printMutateHelp(const char *indent) {
+std::string printMutateHelp( const char *indent ) {
     std::ostringstream ss;
     //              "--version                "
     ss << indent << "-s, --seed=HEXSTRING     Pass seed in as CLI argument. Defaults to generating a new seed\n";
@@ -65,37 +65,40 @@ std::string printMutateHelp(const char *indent) {
     return ss.str();
 };
 
-std::string printMutateHelp(std::string indent) { return printMutateHelp(indent.c_str()); }
+std::string printMutateHelp( std::string indent ) { return printMutateHelp( indent.c_str() ); }
 
-std::string printMutateHelp(void) { return printMutateHelp(""); }
+std::string printMutateHelp( void ) { return printMutateHelp( "" ); }
 
-void validateMutateArgs(CLIOptions *opts, std::vector<std::string> *nonpositionals) {
-    if (opts->hasFormat()) throw InvalidArgumentException("Cannot use the --format option in mutate mode");
+void validateMutateArgs( CLIOptions *opts, std::vector<std::string> *nonpositionals ) {
+    if ( opts->hasFormat() ) {
+        throw InvalidArgumentException( "Cannot use the --format option in mutate mode" );
+    }
 
-    if (1 < nonpositionals->size())
-        throw InvalidArgumentException("mutate mode does not accept extra non-positional arguments");
+    if ( 1 < nonpositionals->size() ) {
+        throw InvalidArgumentException( "mutate mode does not accept extra non-positional arguments" );
+    }
 
     std::string input = opts->getSrcString();
 
-    if (!input.length()) {
+    if ( !input.length() ) {
         std::ostringstream os;
         const char *path = opts->getInputFileName();
         os << "Input file \"" << path << "\" has no content.";
 
-        throw InvalidArgumentException(sanitizeOutputMessage(os.str()));
+        throw InvalidArgumentException( sanitizeOutputMessage( os.str() ) );
     }
 
-    if (opts->hasOutputFileName()) {
+    if ( opts->hasOutputFileName() ) {
         const char *path = opts->getOutputFileName();
-        if (std::filesystem::exists(path) && !opts->okToOverwriteOutputFile()) {
+        if ( std::filesystem::exists( path ) && !opts->okToOverwriteOutputFile() ) {
             std::ostringstream os;
             os << "Output file \'" << path << "\' already exists. Use \'-F\' to force overwrite.";
-            throw IOErrorException(sanitizeOutputMessage(os.str()));
+            throw IOErrorException( sanitizeOutputMessage( os.str() ) );
         }
-        opts->setResOutput(path);
+        opts->setResOutput( path );
     }
-    else if (opts->okToOverwriteOutputFile()) {
-        throw InvalidArgumentException("Option --force invalid when no output file is specified.");
+    else if ( opts->okToOverwriteOutputFile() ) {
+        throw InvalidArgumentException( "Option --force invalid when no output file is specified." );
     }
 
     // TSV parsing and validation performed by MutationsRetriever class in doAction()
@@ -103,25 +106,27 @@ void validateMutateArgs(CLIOptions *opts, std::vector<std::string> *nonpositiona
     // doAction()
 }
 
-void doMutateAction(CLIOptions *opts, std::vector<std::string> *nonpositionals) {
+void doMutateAction( CLIOptions *opts, std::vector<std::string> *nonpositionals ) {
     // TODO: actually do stuff here
     (void)nonpositionals;  // silence unused warnings
 
-    MutationsRetriever mRetriever{opts->getTsvString()};
-    MutationsSelector mSelector{opts, mRetriever.getPossibleMutations()};
+    MutationsRetriever mRetriever{ opts->getTsvString() };
+    MutationsSelector mSelector{ opts, mRetriever.getPossibleMutations() };
     std::string outputString;
-    Mutator mutator{opts->getSrcString(), outputString, mSelector.getSelectedMutations(), opts};
+    Mutator mutator{ opts->getSrcString(), outputString, mSelector.getSelectedMutations(), opts };
 
-    opts->putResOutput(outputString);
+    opts->putResOutput( outputString );
 
     // std::cerr << mutator.mutatedLines.size() << " mutations have been successfully applied across "
     // 		<< mutator.mutatedLineCount << " lines" << std::endl;
 
-    if (opts->seedNeedsExporting()) { opts->putSeedOutput(opts->getSeed()); }
+    if ( opts->seedNeedsExporting() ) {
+        opts->putSeedOutput( opts->getSeed() );
+    }
 }
 
-ParseArgvStatusCode execMutate(CLIOptions *opts, std::vector<std::string> *nonpositionals) {
-    validateMutateArgs(opts, nonpositionals);
-    doMutateAction(opts, nonpositionals);
+ParseArgvStatusCode execMutate( CLIOptions *opts, std::vector<std::string> *nonpositionals ) {
+    validateMutateArgs( opts, nonpositionals );
+    doMutateAction( opts, nonpositionals );
     return ParseArgvStatusCode::SUCCESS;
 }

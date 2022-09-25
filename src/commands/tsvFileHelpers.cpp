@@ -153,8 +153,12 @@ void caseCaret(std::string::iterator patIt, PossibleMutVec::iterator& pmIt) {
 
     while (((patIt + 1) != pmIt->pattern.end()) && *(++patIt) == '^') ++(pmIt->data.depth);
 
-    if ((*patIt == '^' ? ++patIt : patIt) == pmIt->pattern.end()) { throwEmptyPatternException(pmIt->data.lineNumber); }
-    if (*patIt == '@') { caseSynced(patIt, pmIt); }
+    if ((*patIt == '^' ? ++patIt : patIt) == pmIt->pattern.end()) {
+        throwEmptyPatternException(pmIt->data.lineNumber);
+    }
+    if (*patIt == '@') {
+        caseSynced(patIt, pmIt);
+    }
     else if (pmIt->pattern.find_first_of("+?/!") == static_cast<size_t>(patIt - pmIt->pattern.begin())) {
         caseSpecialChars(patIt, pmIt);
     }
@@ -163,7 +167,9 @@ void caseCaret(std::string::iterator patIt, PossibleMutVec::iterator& pmIt) {
 void caseSynced(std::string::iterator patIt, PossibleMutVec::iterator& pmIt) {
     pmIt->data.depth = pmIt->data.depth == 0 ? 2 : (pmIt->data.depth + 1);  // depth of non group leaders can never be 1
     pmIt->data.isIndexSynced = true;
-    if (++patIt == pmIt->pattern.end()) { throwEmptyPatternException(pmIt->data.lineNumber); }
+    if (++patIt == pmIt->pattern.end()) {
+        throwEmptyPatternException(pmIt->data.lineNumber);
+    }
     if (pmIt->pattern.find_first_of("+?/!") == static_cast<size_t>(patIt - pmIt->pattern.begin())) {
         caseSpecialChars(patIt, pmIt);
     }
@@ -191,5 +197,7 @@ void caseSpecialChars(std::string::iterator patIt, PossibleMutVec::iterator& pmI
         pmIt->data.isRegex = true;
         ++patIt;
     }
-    if (patIt == pmIt->pattern.end()) { throwEmptyPatternException(pmIt->data.lineNumber); }
+    if (patIt == pmIt->pattern.end()) {
+        throwEmptyPatternException(pmIt->data.lineNumber);
+    }
 }

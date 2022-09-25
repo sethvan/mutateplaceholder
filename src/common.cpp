@@ -37,7 +37,9 @@ std::string sanitizeOutputMessage(const char* input) {
     std::unique_ptr<char[]> outBuff(new char[inLen + 1]);  // RAII?
 
     for (std::size_t i = 0; i < inLen; i++) {
-        if (31 < input[i] && input[i] < 127) { outBuff[i] = input[i]; }
+        if (31 < input[i] && input[i] < 127) {
+            outBuff[i] = input[i];
+        }
         else {
             outBuff[i] = '?';  // indicate unknown/invalid character
         }

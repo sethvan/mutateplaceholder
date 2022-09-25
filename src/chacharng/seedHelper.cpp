@@ -28,7 +28,9 @@
 #include <random>
 
 int hexToInt(char hex) {
-    if ('0' <= hex && hex <= '9') { return hex - '0'; }
+    if ('0' <= hex && hex <= '9') {
+        return hex - '0';
+    }
     else if ('A' <= hex && hex <= 'F') {
         return 10 + hex - 'A';
     }
@@ -73,7 +75,9 @@ void systemRandomFountain(void *output, std::size_t size) {
     FILE *urandom = std::fopen("/dev/urandom", "rb");
     std::size_t readBytes = 0;
 
-    if (urandom == nullptr) { urandom = std::fopen("/dev/random", "rb"); }
+    if (urandom == nullptr) {
+        urandom = std::fopen("/dev/random", "rb");
+    }
 
     std::memset(output, 0, size);
 

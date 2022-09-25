@@ -98,7 +98,9 @@ static commandsMap setCommandsMap() {
 }
 
 static ParseArgvStatusCode parseArgvAndPerformAction(int argc, const char **argv) {
-    if (argc < 2) { throw InvalidArgumentException("Too few arguments"); }
+    if (argc < 2) {
+        throw InvalidArgumentException("Too few arguments");
+    }
 
     CLIOptions parsedArgs;
     std::vector<std::string> nonpositionals;
@@ -126,7 +128,9 @@ static ParseArgvStatusCode parseArgvAndPerformAction(int argc, const char **argv
     try {
         ParseArgvStatusCode status = commands.at(actionName)(&parsedArgs, &nonpositionals);
         std::string warnings = parsedArgs.getWarnings();
-        if (warnings.size()) { std::cerr << warnings; }
+        if (warnings.size()) {
+            std::cerr << warnings;
+        }
         return status;
     } catch (const std::out_of_range &ex) {
         std::cerr << "Out of range error: " << ex.what() << std::endl;

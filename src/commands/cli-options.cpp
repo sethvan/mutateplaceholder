@@ -141,7 +141,9 @@ void CLIOptions::setSeedOutput(const char *path) {
 }
 
 void CLIOptions::setSeed(const char *seed) {
-    if (seedString.has_value()) { throw InvalidArgumentException("seed string can only be specified once"); }
+    if (seedString.has_value()) {
+        throw InvalidArgumentException("seed string can only be specified once");
+    }
 
     if (CLIOptions::seedInput != nullptr) {
         throw InvalidArgumentException("options --seed and --read-seed are mutually exclusive. Please choose one");
@@ -204,14 +206,18 @@ static char asciitolower_for_format(char in) {
 }
 
 void CLIOptions::setFormat(const char *fmt) {
-    if (CLIOptions::format.has_value()) { throw InvalidArgumentException("format can only be specified once"); }
+    if (CLIOptions::format.has_value()) {
+        throw InvalidArgumentException("format can only be specified once");
+    }
 
     std::string str(fmt);
 
     // make the string lower case so that the format option is case-insensitive
     std::transform(str.begin(), str.end(), str.begin(), asciitolower_for_format);
 
-    if (0 == std::strcmp(str.c_str(), "html")) { format = Format::HTML; }
+    if (0 == std::strcmp(str.c_str(), "html")) {
+        format = Format::HTML;
+    }
     else if (0 == std::strcmp(str.c_str(), "srctext") || 0 == std::strcmp(str.c_str(), "srctxt")) {
         format = Format::SRCTEXT;
     }
@@ -350,7 +356,9 @@ std::string CLIOptions::getWarnings() {
         os << "}\n";
     }
     if (warnings.size()) {
-        for (const auto &str : warnings) { os << "   " << str << std::endl; }
+        for (const auto &str : warnings) {
+            os << "   " << str << std::endl;
+        }
         os << std::endl;
     }
     if ((os.str().size())) {

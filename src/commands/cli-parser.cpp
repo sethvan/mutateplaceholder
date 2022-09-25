@@ -85,7 +85,9 @@ ParseArgvStatusCode parseArgs(CLIOptions* output, std::vector<std::string>* nonP
             int c = getopt_long(argc, (char* const*)argv, short_options, long_options, &option_index);
 
             /* Detect the end of the options. */
-            if (c < 0) { break; }
+            if (c < 0) {
+                break;
+            }
 
             switch (c) {
                 case 0:

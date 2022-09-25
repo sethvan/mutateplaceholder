@@ -54,7 +54,9 @@ void validateHighlightArgs(CLIOptions *opts, std::vector<std::string> *nonpositi
     if (1 < nonpositionals->size())
         throw InvalidArgumentException("highlight mode does not accept extra non-positional arguments");
 
-    if (!opts->hasFormat()) { opts->setFormat("html"); }
+    if (!opts->hasFormat()) {
+        opts->setFormat("html");
+    }
 
     // NOTE: this is the place to do file parsing and file syntax validation
 }

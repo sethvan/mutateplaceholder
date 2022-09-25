@@ -132,7 +132,9 @@ std::vector<TSVRow> MutationsRetriever::getRows() {
         ++lineNumber;
     }
     else {
-        if (c == '"') { ++QMarkCount; }
+        if (c == '"') {
+            ++QMarkCount;
+        }
         else {
             countTheQMarks = false;
         }
@@ -176,7 +178,9 @@ std::vector<TSVRow> MutationsRetriever::getRows() {
         if (Row.row[0] != '#') rows.push_back(Row);
     });
 
-    if (!rows.size()) { throw TSVParsingException("No mutations found in TSV file."); }
+    if (!rows.size()) {
+        throw TSVParsingException("No mutations found in TSV file.");
+    }
 
     return rows;
 }

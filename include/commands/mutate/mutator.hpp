@@ -31,17 +31,7 @@
 
 #include "../cli-options.hpp"
 #include "commands/mutate/mutateDataStructures.hpp"
-//#include "commands/mutate/jpcre2.hpp"
-
-struct MutatedLine {
-    int lineNumber;
-    size_t lineIndex;  // where in line the pattern starts
-    std::string mutation;
-
-    MutatedLine(int _lineNumber, size_t _lineIndex, std::string _mutation)
-        : lineNumber{_lineNumber}, lineIndex{_lineIndex}, mutation{_mutation} {}
-};
-using MutatedLinesMap = std::unordered_map<std::string, std::vector<MutatedLine>>;
+#include "commands/mutate/textReplacer.hpp"
 
 class Mutator {  // Made class for now, may change
 
@@ -54,60 +44,26 @@ class Mutator {  // Made class for now, may change
 
     CLIOptions* opts;
 
+    TextReplacer replacer;
+
     void mutate();
 
-    void replaceStringInPlace(std::string& subject, const SelectedMutation& sm);
+    void regexReplace( std::string& subject, const SelectedMutation& sm );
 
-    void multilineReplace(std::string& subject, const SelectedMutation& sm);
+    std::set<std::string> getRegexMatches( const std::string& pattern, const std::string& subject,
+                                           const std::string& modifiers );
 
-    void regexReplace(std::string& subject, const SelectedMutation& sm);
-
-    bool isMultilineString(std::string str) const;
-
-    bool lineEdgesAreGood(std::string::iterator& begin, std::string::iterator& end, const std::string& str,
-                          const std::string& subject);
-
-    bool substringIsMatch(const std::string& subject, std::string::iterator it, const std::string& str);
-
-    void checkPermutation(const SelectedMutation& sm, bool addIndentation, std::string& permutationString,
-                          const std::string& indent);
-
-    bool edgesGoodAndReplacementSuccessful(std::string::iterator& begin, std::string::iterator& end,
-                                           const std::string& patternString, std::string& subject,
-                                           const SelectedMutation& sm, std::string& permutationString, size_t& pos,
-                                           size_t lengthToRemove, int& matches);
-
-    void checkCountOfMatches(int matches, const SelectedMutation& sm);
-
-    bool lines3AndOnAreGood(bool addIndentation, int indentation, const std::string& subject,
-                            std::string::iterator& begin, std::string::iterator& end,
-                            std::vector<std::string>::iterator& linesIt,
-                            const std::vector<std::string>::iterator& vecEnd);
-
-    bool wholeSublineOfMultilineIsMatch(bool addIndentation, int indentation, const std::string& subject,
-                                        std::string::iterator& begin, std::string::iterator& end,
-                                        const std::string& str);
-
-    bool line2IsGood(const std::string& subject, std::string::iterator& end,
-                     std::vector<std::string>::iterator& linesIt, int indentation, bool& addIndentation,
-                     std::string::iterator& begin);
-
-    std::tuple<std::string, std::string> getPatternAndModifiers(size_t index, const SelectedMutation& sm);
-
-    std::set<std::string> getRegexMatches(const std::string& pattern, const std::string& subject,
-                                          const std::string& modifiers);
-
-    std::vector<std::string> separateLinesIntoVector(std::string str);
+    std::tuple<std::string, std::string> getPatternAndModifiers( size_t index, const SelectedMutation& sm );
 
     std::string removeSrcStrComments();
 
+    void checkCountOfMatches( int matches, const SelectedMutation& sm );
+
    public:
-    Mutator(std::string _sourceString, std::string& _outputString, SelectedMutVec _selectedMutations,
-            CLIOptions* _opts);
+    Mutator( std::string _sourceString, std::string& _outputString, SelectedMutVec _selectedMutations,
+             CLIOptions* _opts );
 
-    MutatedLinesMap mutatedLines;
-
-    long mutatedLineCount{};
+    // long mutatedLineCount{};
 };
 
 #endif  // _INCLUDED_MUTATOR_HPP_

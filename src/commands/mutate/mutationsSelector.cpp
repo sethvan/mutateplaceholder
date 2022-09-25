@@ -19,6 +19,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+// macro printDatos() just for developing purposes
 #define printDatos()                                                                             \
     std::cerr << "lineNumber: " << it->data.lineNumber << ", depth: " << it->data.depth          \
               << ", synced: " << it->data.isIndexSynced << ", optional: " << it->data.isOptional \
@@ -37,48 +38,49 @@
 
 #include "excepts.hpp"
 
-#define OFFSET                                                                                                   \
-    ((it->data.depth ? it->data.depth - 1 : 0) + it->data.isOptional + it->data.isNewLined + it->data.mustPass + \
-     it->data.isRegex)
-
-MutationsSelector::MutationsSelector(CLIOptions* _opts, PossibleMutVec& _possibleMutations)
-    : opts(_opts), possibleMutations(_possibleMutations), pmVecSize{possibleMutations.size()} {}
+MutationsSelector::MutationsSelector( CLIOptions* _opts, PossibleMutVec& _possibleMutations )
+    : opts( _opts ), possibleMutations( _possibleMutations ), pmVecSize{ possibleMutations.size() } {}
 
 SelectedMutVec& MutationsSelector::getSelectedMutations() {
     selectMutations();
-    if (verbose) { std::cerr << selectedMutations.size() << " possible mutations have been selected" << std::endl; }
+    if ( verbose ) {
+        std::cerr << selectedMutations.size() << " possible mutations have been selected" << std::endl;
+    }
 
     return selectedMutations;
 }
 
 void MutationsSelector::selectMutations() {
-    if (!selectedIndexes.size())  // When testing, this vector will be passed in with test values
+    if ( !selectedIndexes.size() ) {  // When testing, this vector will be passed in with test values
         selectIndexes();
+    }
 
     bool negatedTest = possibleMutations[selectedIndexes[0]].data.mustPass;
 
-    // std::cerr << "Size of PosMutVec: " << possibleMutations.size() << std::endl;
-
-    std::vector<size_t> leaderIndexes{0};
-    size_t newGroupNumber{0};
-    for (const auto& i : selectedIndexes) {
-        if (selectedMutations.size() < selectedIndexes.size()) {
+    std::vector<size_t> leaderIndexes{ 0 };
+    size_t newGroupNumber{ 0 };
+    for ( const auto& i : selectedIndexes ) {
+        if ( selectedMutations.size() < selectedIndexes.size() ) {
             auto posMutVecIt = possibleMutations.begin() + i;
-            if (posMutVecIt->data.groupNumber > 0) continue;
-            if (!posMutVecIt->data.depth) {
-                selectPermutation(nextRNGBetween(0, posMutVecIt->permutations.size(), rng), posMutVecIt);
+            if ( posMutVecIt->data.groupNumber > 0 ) {
+                continue;
+            }
+            if ( !posMutVecIt->data.depth ) {
+                selectPermutation( nextRNGBetween( 0, posMutVecIt->permutations.size(), rng ), posMutVecIt );
             }
             else {
-                size_t existingGroupNumber{0};
+                size_t existingGroupNumber{ 0 };
                 auto leader = posMutVecIt;
-                while (leader->data.depth != 1) --leader;
-                if ((existingGroupNumber = leader->data.groupNumber) > 0) {
-                    addNestedLine(leaderIndexes, existingGroupNumber, posMutVecIt);
+                while ( leader->data.depth != 1 ) {
+                    --leader;
+                }
+                if ( ( existingGroupNumber = leader->data.groupNumber ) > 0 ) {
+                    addNestedLine( leaderIndexes, existingGroupNumber, posMutVecIt );
                 }
                 else {
-                    addNewGroup(leaderIndexes, newGroupNumber, leader);
-                    if (leader != posMutVecIt && !posMutVecIt->data.groupNumber) {
-                        addNestedLine(leaderIndexes, newGroupNumber, posMutVecIt);
+                    addNewGroup( leaderIndexes, newGroupNumber, leader );
+                    if ( leader != posMutVecIt && !posMutVecIt->data.groupNumber ) {
+                        addNestedLine( leaderIndexes, newGroupNumber, posMutVecIt );
                     }
                 }
             }
@@ -86,141 +88,164 @@ void MutationsSelector::selectMutations() {
         else
             break;
     }
-    sortOutNegatedLines(negatedTest);
-    std::sort(selectedMutations.begin(), selectedMutations.end(),
-              [](auto a, auto b) { return a.data.lineNumber > b.data.lineNumber; });
+    sortOutNegatedLines( negatedTest );
+    std::sort( selectedMutations.begin(), selectedMutations.end(),
+               []( auto a, auto b ) { return a.data.lineNumber > b.data.lineNumber; } );
 }
 
 void MutationsSelector::setSeedArray() {
     std::string seedString;
     size_t seedStringLength{};
 
-    if ((seedStringLength = (seedString = opts->getSeed()).length())) {
-        if (seedStringLength < 64) {
-            throw InvalidSeedException(" Error : Invalid input seed. Expected 64 hexadecimal digits");
+    if ( ( seedStringLength = ( seedString = opts->getSeed() ).length() ) ) {
+        if ( seedStringLength < 64 ) {
+            throw InvalidSeedException( " Error : Invalid input seed. Expected 64 hexadecimal digits" );
         }
-        if (!parseHexString(seedString.c_str(), seedArray.data(), SEED_SIZE_BYTES)) {
-            throw InvalidSeedException(" Error : Seed being passed in is not valid hexidecimal number");
+        if ( !parseHexString( seedString.c_str(), seedArray.data(), SEED_SIZE_BYTES ) ) {
+            throw InvalidSeedException( " Error : Seed being passed in is not valid hexidecimal number" );
         }
-        if (verbose) { std::cerr << "Using provided seed: " << seedString << std::endl; }
+        if ( verbose ) {
+            std::cerr << "Using provided seed: " << seedString << std::endl;
+        }
     }
     else {
         seedArray = generateSeed();
-        std::uint8_t hexSeedString[SEED_SIZE_BYTES * 2 + 1] = {0};
-        if (!writeHexString((const char*)seedArray.data(), hexSeedString, SEED_SIZE_BYTES))
-            throw InvalidSeedException(" Error: Failed to write out a string as hexadecimal");
-        opts->setSeed((char*)hexSeedString);
-        if (verbose) { std::cerr << "Using generated seed: " << hexSeedString << std::endl; }
+        std::uint8_t hexSeedString[SEED_SIZE_BYTES * 2 + 1] = { 0 };
+        if ( !writeHexString( (const char*)seedArray.data(), hexSeedString, SEED_SIZE_BYTES ) ) {
+            throw InvalidSeedException( " Error: Failed to write out a string as hexadecimal" );
+        }
+        opts->setSeed( (char*)hexSeedString );
+        if ( verbose ) {
+            std::cerr << "Using generated seed: " << hexSeedString << std::endl;
+        }
     }
 }
 
 void MutationsSelector::setSelectedMutCount() {
-    if (opts->hasMutCount()) {
-        selectedMutCount = std::min(opts->getMutCount(), static_cast<int>(pmVecSize));
-        if (opts->getMutCount() > static_cast<int>(pmVecSize)) {
+    if ( opts->hasMutCount() ) {
+        selectedMutCount = std::min( opts->getMutCount(), static_cast<int>( pmVecSize ) );
+        if ( opts->getMutCount() > static_cast<int>( pmVecSize ) ) {
             std::ostringstream os;
             os << "--count=NUMBER entered exceeded possible amount contained in TSV, maximum available count of "
                << selectedMutCount << " from TSV was instead used.";
-            opts->addWarning(os.str());
+            opts->addWarning( os.str() );
         }
     }
     else {
         int minMutCount = opts->hasMinMutCount() ? opts->getMinMutCount() : 1;
         int maxMutCount = opts->hasMaxMutCount() ? opts->getMaxMutCount() : pmVecSize + 1;
-        selectedMutCount = nextRNGBetween(minMutCount, maxMutCount, rng);
+        selectedMutCount = nextRNGBetween( minMutCount, maxMutCount, rng );
         std::ostringstream os;
         os << selectedMutCount;
-        opts->setMutCount(os.str().c_str());
+        opts->setMutCount( os.str().c_str() );
     }
 }
 
 // This method also trims the string_view of the pattern cell
-void MutationsSelector::selectPermutation(size_t index, PossibleMutVec::iterator& it) {
-    index = index > (it->permutations.size() - 1) ? it->permutations.size() - 1
-                                                  : index;  // for synced lines with less permutations than leader
-    size_t offset = OFFSET, bytes, endPos;
+void MutationsSelector::selectPermutation( size_t index, PossibleMutVec::iterator& it ) {
+    index = index > ( it->permutations.size() - 1 ) ? it->permutations.size() - 1
+                                                    : index;  // for synced lines with less permutations than leader
+    size_t offset = ( ( it->data.depth ? it->data.depth - 1 : 0 ) + it->data.isOptional + it->data.isNewLined +
+                      it->data.mustPass + it->data.isRegex );
     auto patIt = it->pattern.begin();
     auto end = it->pattern.end();
-    while ((bytes = isWhiteSpace((patIt + offset), end))) offset += bytes;
-    endPos = lastNonWhiteSpace(patIt, end);
+    size_t bytes{};
+    while ( ( bytes = isWhiteSpace( ( patIt + offset ), end ) ) ) {
+        offset += bytes;
+    }
+    auto endPos = lastNonWhiteSpace( patIt, end );
 
-    std::string pattern(it->pattern.c_str() + offset,
-                        (endPos == std::string::npos ? it->pattern.size() : endPos + 1) - offset);
+    std::string pattern( it->pattern.c_str() + offset,
+                         ( endPos == std::string::npos ? it->pattern.size() : endPos + 1 ) - offset );
     std::string mutation = it->permutations[index];
-    selectedMutations.emplace_back(pattern, mutation, it->data);
+    selectedMutations.emplace_back( pattern, mutation, it->data );
     // printDatos();
 }
 
-void MutationsSelector::groupedSelectPermutation(const std::vector<size_t>& indexes, size_t groupNumber,
-                                                 PossibleMutVec::iterator& it) {
+void MutationsSelector::groupedSelectPermutation( const std::vector<size_t>& indexes, size_t groupNumber,
+                                                  PossibleMutVec::iterator& it ) {
     it->data.groupNumber = groupNumber;
-    if (it->data.isIndexSynced) { selectPermutation(indexes[groupNumber], it); }
+    if ( it->data.isIndexSynced ) {
+        selectPermutation( indexes[groupNumber], it );
+    }
     else {
-        selectPermutation(nextRNGBetween(0, it->permutations.size(), rng), it);
+        selectPermutation( nextRNGBetween( 0, it->permutations.size(), rng ), it );
     }
 }
 
-void MutationsSelector::addAnythingElseNested(const std::vector<size_t>& indexes, size_t groupNumber,
-                                              PossibleMutVec::iterator& it) {
+void MutationsSelector::addAnythingElseNested( const std::vector<size_t>& indexes, size_t groupNumber,
+                                               PossibleMutVec::iterator& it ) {
     auto upwardsIt = it;
-    while (!((upwardsIt - 1)->data.groupNumber) && (upwardsIt - 1)->data.depth < upwardsIt->data.depth) {
+    while ( !( ( upwardsIt - 1 )->data.groupNumber ) && ( upwardsIt - 1 )->data.depth < upwardsIt->data.depth ) {
         --upwardsIt;
-        groupedSelectPermutation(indexes, groupNumber, upwardsIt);
+        groupedSelectPermutation( indexes, groupNumber, upwardsIt );
     }
-    while (!((it + 1)->data.groupNumber) && !((it + 1)->data.isOptional) && it + 1 != possibleMutations.end() &&
-           (it + 1)->data.depth > it->data.depth) {
+    while ( !( ( it + 1 )->data.groupNumber ) && !( ( it + 1 )->data.isOptional ) &&
+            it + 1 != possibleMutations.end() && ( it + 1 )->data.depth > it->data.depth ) {
         ++it;
-        groupedSelectPermutation(indexes, groupNumber, it);
+        groupedSelectPermutation( indexes, groupNumber, it );
     }
 }
 
-void MutationsSelector::addNewGroup(std::vector<size_t>& indexes, size_t& newGroupNumber,
-                                    PossibleMutVec::iterator& leader) {
+void MutationsSelector::addNewGroup( std::vector<size_t>& indexes, size_t& newGroupNumber,
+                                     PossibleMutVec::iterator& leader ) {
     leader->data.groupNumber = ++newGroupNumber;
-    size_t leaderIndex = nextRNGBetween(0, leader->permutations.size(), rng);
-    indexes.push_back(leaderIndex);
-    selectPermutation(leaderIndex, leader);
+    size_t leaderIndex = nextRNGBetween( 0, leader->permutations.size(), rng );
+    indexes.push_back( leaderIndex );
+    selectPermutation( leaderIndex, leader );
 
     auto posMutVecIt = leader;
 
     bool okToAdd = true;
-    while ((posMutVecIt + 1)->data.depth > 1 && posMutVecIt + 1 != possibleMutations.end()) {
+    while ( ( posMutVecIt + 1 )->data.depth > 1 && posMutVecIt + 1 != possibleMutations.end() ) {
         ++posMutVecIt;
-        if (posMutVecIt->data.depth == 2) okToAdd = true;
-        if (posMutVecIt->data.isOptional) okToAdd = false;
-        if (okToAdd) { groupedSelectPermutation(indexes, newGroupNumber, posMutVecIt); }
+        if ( posMutVecIt->data.depth == 2 ) {
+            okToAdd = true;
+        }
+        if ( posMutVecIt->data.isOptional ) {
+            okToAdd = false;
+        }
+        if ( okToAdd ) {
+            groupedSelectPermutation( indexes, newGroupNumber, posMutVecIt );
+        }
     }
 }
 
 void MutationsSelector::selectIndexes() {
     setSeedArray();
-    rng = State(seedArray.data());
+    rng = State( seedArray.data() );
     setSelectedMutCount();  // reminder: rng needs to be constructed with seed for this method to work
 
     std::set<size_t> set;
-    while (set.size() < static_cast<size_t>(selectedMutCount)) {
-        set.insert(nextRNGBetween(0, static_cast<std::uint32_t>(pmVecSize), rng));
+    while ( set.size() < static_cast<size_t>( selectedMutCount ) ) {
+        set.insert( nextRNGBetween( 0, static_cast<std::uint32_t>( pmVecSize ), rng ) );
     }
-    for (const auto& i : set) { selectedIndexes.push_back(i); }
+    for ( const auto& i : set ) {
+        selectedIndexes.push_back( i );
+    }
 }
 
-void MutationsSelector::addNestedLine(const std::vector<size_t>& indexes, size_t groupNumber,
-                                      PossibleMutVec::iterator& it) {
-    groupedSelectPermutation(indexes, groupNumber, it);
-    addAnythingElseNested(indexes, groupNumber, it);
+void MutationsSelector::addNestedLine( const std::vector<size_t>& indexes, size_t groupNumber,
+                                       PossibleMutVec::iterator& it ) {
+    groupedSelectPermutation( indexes, groupNumber, it );
+    addAnythingElseNested( indexes, groupNumber, it );
 }
 
-void MutationsSelector::sortOutNegatedLines(bool negatedTest) {
+void MutationsSelector::sortOutNegatedLines( bool negatedTest ) {
     SelectedMutVec temp;
-    if (negatedTest) {
-        std::for_each(selectedMutations.begin(), selectedMutations.end(), [&](SelectedMutation& sm) {
-            if (sm.data.mustPass) { temp.push_back(sm); }
-        });
+    if ( negatedTest ) {
+        std::for_each( selectedMutations.begin(), selectedMutations.end(), [&]( SelectedMutation& sm ) {
+            if ( sm.data.mustPass ) {
+                temp.push_back( sm );
+            }
+        } );
     }
     else {
-        std::for_each(selectedMutations.begin(), selectedMutations.end(), [&](SelectedMutation& sm) {
-            if (!sm.data.mustPass) { temp.push_back(sm); }
-        });
+        std::for_each( selectedMutations.begin(), selectedMutations.end(), [&]( SelectedMutation& sm ) {
+            if ( !sm.data.mustPass ) {
+                temp.push_back( sm );
+            }
+        } );
     }
     selectedMutations = temp;
 }

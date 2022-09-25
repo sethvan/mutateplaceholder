@@ -65,16 +65,22 @@ void readStdinLinesIntoOptionalString(char *deliminator, std::optional<std::stri
             throw IOErrorException("I/O error reading from stdin");
         }
 
-        if (0 == std::strcmp(deliminator, buffTmp)) { break; }
+        if (0 == std::strcmp(deliminator, buffTmp)) {
+            break;
+        }
 
-        if (!output->has_value()) { output->emplace(buffTmp); }
+        if (!output->has_value()) {
+            output->emplace(buffTmp);
+        }
         else {
             output->value().append(buffTmp);
         }
     }
 
     err = ferror(stdin);
-    if (err != EOK && err != EAGAIN) { throw IOErrorException("I/O error reading from stdin"); }
+    if (err != EOK && err != EAGAIN) {
+        throw IOErrorException("I/O error reading from stdin");
+    }
 
     if (!output->has_value()) output->emplace("", 0);
 }
@@ -84,7 +90,9 @@ void initializeSrcTsvTogetherFromStdin(std::optional<std::string> *srcString, st
 
     char deliminator[IO_BUFF_SIZE + 16];  // = {0};
     if (nullptr == std::fgets(deliminator, IO_BUFF_SIZE + 1, stdin)) {
-        if (!feof(stdin)) { throw IOErrorException("I/O error reading from stdin"); }
+        if (!feof(stdin)) {
+            throw IOErrorException("I/O error reading from stdin");
+        }
     }
 
     readStdinLinesIntoOptionalString(deliminator, srcString);
@@ -119,7 +127,9 @@ void readSeedFileIntoString(std::FILE *seedInput, std::optional<std::string> *ou
 
     char *aliasPtr = std::fgets(readCharBuff, IO_BUFF_SIZE + 1, seedInput);
 
-    if (aliasPtr == nullptr) { throw IOErrorException("I/O error reading from seed file"); }
+    if (aliasPtr == nullptr) {
+        throw IOErrorException("I/O error reading from seed file");
+    }
     else {
         // First, trim trailing new line
         char *newLine = strchr(readCharBuff, '\n');

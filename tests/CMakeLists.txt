@@ -17,6 +17,7 @@ add_executable( mutatetester
 ../src/commands/mutate/mutationsSelector.cpp 
 ../src/commands/mutate/mutateCommand.cpp 
 ../src/commands/tsvFileHelpers.cpp
+../src/commands/mutate/textReplacer.cpp
 test.cpp )
 
 target_include_directories( mutatetester PRIVATE ../include )
