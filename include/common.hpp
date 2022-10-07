@@ -51,7 +51,7 @@
 
 enum class ParseArgvStatusCode : unsigned char { SUCCESS, ERROR, SHOWHELP, SHOWVERSION };
 
-extern const bool verbose;  // for printing status of process messages in classes
+extern bool verbose;  // for printing status of process messages in classes
 
 // remove special characters from a string so it can be safely shown in the console without risk of introducing security
 // vulnerabilities

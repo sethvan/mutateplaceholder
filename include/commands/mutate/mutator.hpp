@@ -21,32 +21,22 @@
 #ifndef _INCLUDED_MUTATOR_HPP_
 #define _INCLUDED_MUTATOR_HPP_
 
-#include <iostream>
-#include <istream>
-#include <ostream>
 #include <set>
 #include <string>
 #include <tuple>
-#include <unordered_map>
 
 #include "../cli-options.hpp"
 #include "commands/mutate/mutateDataStructures.hpp"
+#include "commands/mutate/mutationsRetriever.hpp"
+#include "commands/mutate/mutationsSelector.hpp"
 #include "commands/mutate/textReplacer.hpp"
 
-class Mutator {  // Made class for now, may change
+class Mutator {
 
    private:
-    std::string sourceString;
-
-    std::string& outputString;
-
-    SelectedMutVec selectedMutations;
-
     CLIOptions* opts;
 
     TextReplacer replacer;
-
-    void mutate();
 
     void regexReplace( std::string& subject, const SelectedMutation& sm );
 
@@ -55,15 +45,13 @@ class Mutator {  // Made class for now, may change
 
     std::tuple<std::string, std::string> getPatternAndModifiers( size_t index, const SelectedMutation& sm );
 
-    std::string removeSrcStrComments();
+    std::string removeStrComments( const std::string& str );
 
-    void checkCountOfMatches( int matches, const SelectedMutation& sm );
+    void checkMatchCount( int matches, const SelectedMutation& sm );
 
    public:
-    Mutator( std::string _sourceString, std::string& _outputString, SelectedMutVec _selectedMutations,
-             CLIOptions* _opts );
-
-    // long mutatedLineCount{};
+    Mutator() = default;
+    std::string operator()( const std::string& srcString, const std::string& tsvString, CLIOptions* opts );
 };
 
 #endif  // _INCLUDED_MUTATOR_HPP_

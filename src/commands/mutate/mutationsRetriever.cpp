@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: GPL-3.0-only or GPL-3.0-or-later */
 /*
  * mutationsRetriever.cpp: This class parses and validates the TSV input,
- capturing the possible mutations.
+ *  capturing the possible mutations.
  *
  * Copyright (c) 2022 RightEnd
  *
@@ -31,7 +31,7 @@
 #include "common.hpp"
 #include "excepts.hpp"
 
-MutationsRetriever::MutationsRetriever(std::string tsvInput) : tsvStream{tsvInput} {}
+MutationsRetriever::MutationsRetriever( std::string tsvInput ) : tsvStream{ tsvInput } {}
 
 void MutationsRetriever::capturePossibleMutations() {
     std::vector<TSVRow> rows = getRows();
@@ -43,47 +43,49 @@ void MutationsRetriever::capturePossibleMutations() {
         std::string::iterator lineIt = line.begin();
         int lineNumber = rowsIt->lineNumber;
 
-        checkIndentation(lineIt, line.end(), lineNumber);
+        checkIndentation( lineIt, line.end(), lineNumber );
 
-        std::string pattern = getPatternOrPermutation(lineIt, line.end(), lineNumber, rowsIt->lineNumber);
-        possibleMutations.push_back(std::move(pattern));
+        std::string pattern = getPatternOrPermutation( lineIt, line.end(), lineNumber, rowsIt->lineNumber );
+        possibleMutations.push_back( std::move( pattern ) );
 
-        verifyHasPermutation(lineIt, line.end(), lineNumber, rowsIt->lineNumber);
+        verifyHasPermutation( lineIt, line.end(), lineNumber, rowsIt->lineNumber );
 
-        while (lineIt != line.end()) {
-            while (*lineIt == '\t')
+        while ( lineIt != line.end() ) {
+            while ( *lineIt == '\t' )
                 ++lineIt;  // will later have option to disable ignoring of white space
                            // cells
-            std::string permutation = getPatternOrPermutation(lineIt, line.end(), lineNumber, rowsIt->lineNumber);
-            possibleMutations.back().permutations.push_back(std::move(permutation));
+            std::string permutation = getPatternOrPermutation( lineIt, line.end(), lineNumber, rowsIt->lineNumber );
+            possibleMutations.back().permutations.push_back( std::move( permutation ) );
         }
         possibleMutations.back().data.lineNumber = rowsIt->lineNumber;
-    } while (++rowsIt != rows.end());
+    } while ( ++rowsIt != rows.end() );
 }
 
 void MutationsRetriever::categorizeMutations() {
     auto pmIt = possibleMutations.begin();
-    while (pmIt != possibleMutations.end()) {
-        if (0 == pmIt->pattern.find_first_not_of("^@+/!") &&
-            ((pmIt + 1) != possibleMutations.end() ? (0 == (pmIt + 1)->pattern.find_first_not_of("^@")) : true)) {
+    while ( pmIt != possibleMutations.end() ) {
+        if ( 0 == pmIt->pattern.find_first_not_of( "^@+/!" ) &&
+             ( ( pmIt + 1 ) != possibleMutations.end() ? ( 0 == ( pmIt + 1 )->pattern.find_first_not_of( "^@" ) )
+                                                       : true ) ) {
             ++pmIt;
             continue;
         }
-        if (0 == pmIt->pattern.find_first_not_of("^@") && (pmIt + 1) != possibleMutations.end() &&
-            0 == (pmIt + 1)->pattern.find_first_of("^@") && 1 == (pmIt + 1)->pattern.find_first_not_of("^@")) {
+        if ( 0 == pmIt->pattern.find_first_not_of( "^@" ) && ( pmIt + 1 ) != possibleMutations.end() &&
+             0 == ( pmIt + 1 )->pattern.find_first_of( "^@" ) &&
+             1 == ( pmIt + 1 )->pattern.find_first_not_of( "^@" ) ) {
             pmIt->data.depth = 1;  // group leader
         }
-        if (0 == pmIt->pattern.find_first_of("^@/+!")) {
+        if ( 0 == pmIt->pattern.find_first_of( "^@/+!" ) ) {
             auto patIt = pmIt->pattern.begin();
-            switch (*patIt) {
+            switch ( *patIt ) {
                 case '^':
-                    caseCaret(patIt, pmIt);
+                    caseCaret( patIt, pmIt );
                     break;
                 case '@':
-                    caseSynced(patIt, pmIt);
+                    caseSynced( patIt, pmIt );
                     break;
                 default:
-                    caseSpecialChars(patIt, pmIt);
+                    caseSpecialChars( patIt, pmIt );
                     break;
             }
         }
@@ -99,20 +101,21 @@ PossibleMutVec& MutationsRetriever::getPossibleMutations() {
 }
 
 void MutationsRetriever::checkNesting() {
-    assert(possibleMutations.size());
+    assert( possibleMutations.size() );
     auto it = possibleMutations.begin();
     auto throwInvalidNesting = [&]() {
         std::ostringstream os;
         os << " Error : Invalid group nesting syntax in TSV File.\n"
            << "Notice :\n     Nested pattern cell in row number "
-           << (it == possibleMutations.begin() ? it : it + 1)->data.lineNumber << " has no corresponding parent."
+           << ( it == possibleMutations.begin() ? it : it + 1 )->data.lineNumber << " has no corresponding parent."
            << std::endl;
-        throw TSVParsingException(os.str());
+        throw TSVParsingException( os.str() );
     };
-    if (it->data.depth > 1) throwInvalidNesting();
-    while ((it + 1) != possibleMutations.end()) {
-        if (((it->data.depth < (it + 1)->data.depth) && (((it + 1)->data.depth - it->data.depth) > 1)) ||
-            (((it + 1)->data.depth > 2) && (it + 1)->data.depth <= it->data.depth)) {
+    if ( it->data.depth > 1 )
+        throwInvalidNesting();
+    while ( ( it + 1 ) != possibleMutations.end() ) {
+        if ( ( ( it->data.depth < ( it + 1 )->data.depth ) && ( ( ( it + 1 )->data.depth - it->data.depth ) > 1 ) ) ||
+             ( ( ( it + 1 )->data.depth > 2 ) && ( it + 1 )->data.depth <= it->data.depth ) ) {
             throwInvalidNesting();
         }
         ++it;
@@ -121,34 +124,34 @@ void MutationsRetriever::checkNesting() {
 
 std::vector<TSVRow> MutationsRetriever::getRows() {
     std::vector<TSVRow> temp;
-    temp.push_back({"", 1});
+    temp.push_back( { "", 1 } );
     char c, last;
     int QMarkCount = 0,
         lineNumber = 1;  // QMarks are quotation marks not question marks
     bool countTheQMarks = true;
 
-    tsvStream.get(c);
-    if ((last = c) == '\n') {  // in case first line is empty
+    tsvStream.get( c );
+    if ( ( last = c ) == '\n' ) {  // in case first line is empty
         ++lineNumber;
     }
     else {
-        if (c == '"') {
+        if ( c == '"' ) {
             ++QMarkCount;
         }
         else {
             countTheQMarks = false;
         }
-        temp.back().row.push_back(c);
+        temp.back().row.push_back( c );
     }
 
-    while (tsvStream.get(c)) {
-        if (c == '\t' && !(QMarkCount % 2) && countTheQMarks) {
+    while ( tsvStream.get( c ) ) {
+        if ( c == '\t' && !( QMarkCount % 2 ) && countTheQMarks ) {
             QMarkCount = 0;
             countTheQMarks = false;
         }
-        if (c == '"') {
-            if (!countTheQMarks) {
-                if (!temp.back().row.size() || last == '\t') {
+        if ( c == '"' ) {
+            if ( !countTheQMarks ) {
+                if ( !temp.back().row.size() || last == '\t' ) {
                     ++QMarkCount;
                     countTheQMarks = true;
                 }
@@ -157,29 +160,32 @@ std::vector<TSVRow> MutationsRetriever::getRows() {
                 ++QMarkCount;
         }
 
-        if (c == '\n') {
+        if ( c == '\n' ) {
             ++lineNumber;
-            if (last == '\n' && !(QMarkCount % 2)) continue;
-            if ((last != '\n' && !(QMarkCount % 2)) || temp.back().row[0] == '#') {
-                temp.push_back({"", lineNumber});
+            if ( last == '\n' && !( QMarkCount % 2 ) )
+                continue;
+            if ( ( last != '\n' && !( QMarkCount % 2 ) ) || temp.back().row[0] == '#' ) {
+                temp.push_back( { "", lineNumber } );
                 QMarkCount = 0;
                 last = c;
                 continue;
             }
         }
-        temp.back().row.push_back(c);
+        temp.back().row.push_back( c );
         last = c;
     }
-    if (!temp.back().row.size()) temp.pop_back();
+    if ( !temp.back().row.size() )
+        temp.pop_back();
 
     std::vector<TSVRow> rows;
-    rows.reserve(temp.size());
-    std::for_each(temp.begin(), temp.end(), [&](TSVRow& Row) {
-        if (Row.row[0] != '#') rows.push_back(Row);
-    });
+    rows.reserve( temp.size() );
+    std::for_each( temp.begin(), temp.end(), [&]( TSVRow& Row ) {
+        if ( Row.row[0] != '#' )
+            rows.push_back( Row );
+    } );
 
-    if (!rows.size()) {
-        throw TSVParsingException("No mutations found in TSV file.");
+    if ( !rows.size() ) {
+        throw TSVParsingException( "No mutations found in TSV file." );
     }
 
     return rows;

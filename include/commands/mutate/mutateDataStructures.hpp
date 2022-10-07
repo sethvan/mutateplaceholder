@@ -25,8 +25,6 @@
  */
 
 #include <string>
-#include <string_view>
-#include <unordered_map>
 #include <vector>
 
 struct SelectedLineInfo {
@@ -41,14 +39,14 @@ struct SelectedLineInfo {
     size_t lineNumber;
 
     SelectedLineInfo()
-        : isRegex{0},
-          isNewLined{0},
-          isIndexSynced{0},
-          isOptional{0},
-          mustPass{0},
-          depth{0},
-          groupNumber{0},
-          lineNumber{0} {}
+        : isRegex{ 0 },
+          isNewLined{ 0 },
+          isIndexSynced{ 0 },
+          isOptional{ 0 },
+          mustPass{ 0 },
+          depth{ 0 },
+          groupNumber{ 0 },
+          lineNumber{ 0 } {}
 };
 
 struct TsvFileLine {
@@ -56,18 +54,18 @@ struct TsvFileLine {
     std::vector<std::string> permutations;
     SelectedLineInfo data;
 
-    TsvFileLine(std::string _pattern, std::vector<std::string> _permutations = std::vector<std::string>{})
-        : pattern{_pattern}, permutations{_permutations} {}
+    TsvFileLine( std::string _pattern, std::vector<std::string> _permutations = std::vector<std::string>{} )
+        : pattern{ _pattern }, permutations{ _permutations } {}
 };
 using PossibleMutVec = std::vector<TsvFileLine>;
 
 struct SelectedMutation {
     std::string pattern;
-    std::string mutation;
+    std::string replacement;
     SelectedLineInfo data;
 
-    SelectedMutation(std::string _pattern, std::string _mutation, SelectedLineInfo info)
-        : pattern{_pattern}, mutation{_mutation}, data{info} {}
+    SelectedMutation( std::string _pattern, std::string _replacement, SelectedLineInfo info )
+        : pattern{ _pattern }, replacement{ _replacement }, data{ info } {}
 };
 using SelectedMutVec = std::vector<SelectedMutation>;
 

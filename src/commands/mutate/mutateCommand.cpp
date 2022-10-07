@@ -107,13 +107,11 @@ void validateMutateArgs( CLIOptions *opts, std::vector<std::string> *nonposition
 }
 
 void doMutateAction( CLIOptions *opts, std::vector<std::string> *nonpositionals ) {
-    // TODO: actually do stuff here
+
     (void)nonpositionals;  // silence unused warnings
 
-    MutationsRetriever mRetriever{ opts->getTsvString() };
-    MutationsSelector mSelector{ opts, mRetriever.getPossibleMutations() };
-    std::string outputString;
-    Mutator mutator{ opts->getSrcString(), outputString, mSelector.getSelectedMutations(), opts };
+    Mutator mutator;
+    std::string outputString = mutator( opts->getSrcString(), opts->getTsvString(), opts );
 
     opts->putResOutput( outputString );
 

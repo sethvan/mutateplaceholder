@@ -21,10 +21,8 @@
 #include "commands/mutate/mutator.hpp"
 
 #include <algorithm>
-#include <cassert>
 #include <set>
 #include <sstream>
-#include <string_view>
 
 #include "commands/mutate/jpcre2.hpp"
 #include "common.hpp"
@@ -32,27 +30,23 @@
 
 typedef jpcre2::select<char> jp;
 
-Mutator::Mutator( std::string _sourceString, std::string& _outputString, SelectedMutVec _selectedMutations,
-                  CLIOptions* _opts )
-    : sourceString{ _sourceString },
-      outputString{ _outputString },
-      selectedMutations{ _selectedMutations },
-      opts{ _opts } {
-    mutate();
-}
+std::string Mutator::operator()( const std::string& srcString, const std::string& tsvString, CLIOptions* _opts ) {
+    opts = _opts;
+    MutationsRetriever retriever( tsvString );
+    MutationsSelector selector{ _opts, retriever.getPossibleMutations() };
+    SelectedMutVec selectedMutations = selector.getSelectedMutations();
 
-void Mutator::mutate() {
-    std::string strippedStr = removeSrcStrComments();
+    std::string strippedStr = removeStrComments( srcString );
     for ( const auto& sm : selectedMutations ) {
         if ( sm.data.isRegex ) {
             regexReplace( strippedStr, sm );
         }
         else {
-            int matches = replacer( strippedStr, sm );
-            checkCountOfMatches( matches, sm );
+            int matches = replacer( strippedStr, sm.pattern, sm.replacement, sm.data.isNewLined );
+            checkMatchCount( matches, sm );
         }
     }
-    outputString = strippedStr;
+    return strippedStr;
 }
 
 void Mutator::regexReplace( std::string& subject, const SelectedMutation& sm ) {
@@ -68,19 +62,19 @@ void Mutator::regexReplace( std::string& subject, const SelectedMutation& sm ) {
     std::set<std::string> matches = getRegexMatches( pattern, subject, modifiers );
 
     for ( const auto& str : matches ) {
-        std::string regexMutation = jp::Regex( pattern ).replace( str, sm.mutation, modifiers );
+        std::string regexMutation = jp::Regex( pattern ).replace( str, sm.replacement, modifiers );
         SelectedMutation regexSm( str, regexMutation, sm.data );
         if ( regexSm.pattern.size() ) {
-            int matches = replacer( subject, regexSm );
-            checkCountOfMatches( matches, sm );
+            int matches = replacer( subject, regexSm.pattern, regexSm.replacement, regexSm.data.isNewLined );
+            checkMatchCount( matches, sm );
         }
     }
 }
 
 // This is just a temporary stand in method to use until we have better regex patterns
 // So that we can continue developing meanwhile
-std::string Mutator::removeSrcStrComments() {
-    std::string subject = jp::Regex( "\\/\\*.*\\*\\/" ).replace( sourceString, "", "gm" );
+std::string Mutator::removeStrComments( const std::string& str ) {
+    std::string subject = jp::Regex( "\\/\\*.*\\*\\/" ).replace( str, "", "gm" );
     subject = jp::Regex( ";.*?\\/\\/[^\"\n]*\n" ).replace( subject, ";\n", "gm" );
     subject = jp::Regex( "({\\s*?\\/\\/[^\"\n]*\n)" ).replace( subject, "{\n", "gm" );
     subject = jp::Regex( "()\\s*?\\/\\/[^\"\n]*\n)" ).replace( subject, ")\n", "gm" );
@@ -88,7 +82,7 @@ std::string Mutator::removeSrcStrComments() {
     return subject;
 }
 
-void Mutator::checkCountOfMatches( int matches, const SelectedMutation& sm ) {
+void Mutator::checkMatchCount( int matches, const SelectedMutation& sm ) {
     if ( !matches ) {
         opts->addNoMatchLine( sm.data.lineNumber );
     }

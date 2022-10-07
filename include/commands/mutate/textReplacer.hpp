@@ -22,6 +22,7 @@
 #define _INCLUDED_TEXTREPLACER_HPP
 
 #include <string>
+#include <vector>
 
 #include "commands/mutate/mutateDataStructures.hpp"
 
@@ -38,17 +39,19 @@ class TextReplacer {
 
     std::string::iterator startPos;
 
-    std::string permutationString;
+    std::string replacementStr;  // this is what is applied, _replacement is what is provided by user
 
-    std::string patternString;
+    std::string patternStr;
 
     int indentation;
 
     bool addIndentation;
 
-    int singleLineReplace( std::string& subject, const SelectedMutation& sm );
+    bool isNewLined;
 
-    int multilineReplace( std::string& subject, const SelectedMutation& sm );
+    int singleLineReplace( std::string& subject, const std::string& _replacement );
+
+    int multilineReplace( std::string& subject, const std::string& _replacement );
 
     bool isMultilineString( const std::string& str ) const;
 
@@ -56,9 +59,9 @@ class TextReplacer {
 
     bool substringIsMatch( const std::string& subject, std::string::iterator it, const std::string& str ) const;
 
-    void setPermutationIndentation( const SelectedMutation& sm, const std::string& indent );
+    void setPermutationIndentation( const std::string& _replacement, const std::string& indent );
 
-    bool edgesGoodAndReplacementSuccessful( std::string& subject, const SelectedMutation& sm );
+    bool edgesGoodAndReplacementSuccessful( std::string& subject, const std::string& _replacement );
 
     bool lines3AndOnAreGood( const std::string& subject, std::vector<std::string>::iterator& linesIt,
                              const std::vector<std::string>::iterator& vecEnd );
@@ -71,7 +74,8 @@ class TextReplacer {
 
    public:
     TextReplacer() = default;
-    int operator()( std::string& subject, const SelectedMutation& sm );
+    int operator()( std::string& subject, const std::string& _pattern, const std::string& _replacement,
+                    bool _isNewLined );
 };
 
 #endif  // _INCLUDED_TEXTREPLACER_HPP

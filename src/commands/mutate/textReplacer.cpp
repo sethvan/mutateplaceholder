@@ -26,30 +26,34 @@
 #include "common.hpp"
 #include "excepts.hpp"
 
-int TextReplacer::operator()( std::string& subject, const SelectedMutation& sm ) {
-    if ( isMultilineString( sm.pattern ) ) {
-        return multilineReplace( subject, sm );
+int TextReplacer::operator()( std::string& subject, const std::string& _pattern, const std::string& _replacement,
+                              bool _isNewLined ) {
+    patternStr = _pattern;
+    isNewLined = _isNewLined;
+
+    if ( isMultilineString( _pattern ) ) {
+
+        return multilineReplace( subject, _replacement );
     }
     else {
-        return singleLineReplace( subject, sm );
+        return singleLineReplace( subject, _replacement );
     }
 }
 
 // adapted from https://stackoverflow.com/questions/4643512/replace-substring-with-another-substring-c/14678946#14678946
-int TextReplacer::singleLineReplace( std::string& subject, const SelectedMutation& sm ) {
+int TextReplacer::singleLineReplace( std::string& subject, const std::string& _replacement ) {
     matches = 0;
     pos = 0;
 
-    while ( ( pos = subject.find( sm.pattern, pos ) ) != std::string::npos ) {
+    while ( ( pos = subject.find( patternStr, pos ) ) != std::string::npos ) {
         begin = subject.begin() + pos;
         while ( *( begin - 1 ) != '\n' ) {
             --begin;
         }
 
         end = subject.begin() + pos;
-        patternString = sm.pattern;
-        lengthToRemove = sm.pattern.length();
-        if ( !edgesGoodAndReplacementSuccessful( subject, sm ) ) {
+        lengthToRemove = patternStr.length();
+        if ( !edgesGoodAndReplacementSuccessful( subject, _replacement ) ) {
             ++pos;
             continue;
         }
@@ -78,16 +82,17 @@ std::vector<std::string> TextReplacer::separateLinesIntoVector( const std::strin
     std::vector<std::string> vec;
 
     while ( std::getline( is, line ) ) {
-        vec.push_back( line + "\n" );
+        vec.push_back( line );
     }
-    vec.back().pop_back();
+
     return vec;
 }
 
-int TextReplacer::multilineReplace( std::string& subject, const SelectedMutation& sm ) {
+int TextReplacer::multilineReplace( std::string& subject, const std::string& _replacement ) {
+
     matches = 0;
     pos = 0;
-    std::vector<std::string> lines = separateLinesIntoVector( sm.pattern );
+    std::vector<std::string> lines = separateLinesIntoVector( patternStr );
 
     while ( ( pos = subject.find( lines[0], pos ) ) != std::string::npos ) {
         begin = subject.begin() + pos;
@@ -97,15 +102,14 @@ int TextReplacer::multilineReplace( std::string& subject, const SelectedMutation
             ++indentation;
         }
 
-        lengthToRemove = sm.pattern.length();
-        patternString = sm.pattern;
+        lengthToRemove = patternStr.length();
         end = subject.begin() + pos;
         startPos = subject.begin() + pos;
-        if ( substringIsMatch( subject, startPos, patternString ) ) {
-            if ( !edgesGoodAndReplacementSuccessful( subject, sm ) ) {
+        if ( substringIsMatch( subject, startPos, patternStr ) ) {
+            if ( !edgesGoodAndReplacementSuccessful( subject, _replacement ) ) {
                 ++pos;
+                continue;
             }
-            continue;
         }
         std::string indent( begin, end );  // to use later if first check of second line does not match
         auto linesIt = lines.begin();
@@ -127,26 +131,27 @@ int TextReplacer::multilineReplace( std::string& subject, const SelectedMutation
         }
         lengthToRemove = end - startPos;
 
-        setPermutationIndentation( sm, indent );
+        setPermutationIndentation( _replacement, indent );
 
         ++matches;
-        if ( sm.data.isNewLined ) {
+        if ( isNewLined ) {
             pos = end - subject.begin() + 1;
-            permutationString.push_back( '\n' );
+            replacementStr.push_back( '\n' );
             lengthToRemove = 0;
         }
-        subject.replace( pos, lengthToRemove, permutationString );
-        pos += permutationString.length();
+        subject.replace( pos, lengthToRemove, replacementStr );
+        pos += replacementStr.length();
     }
     return matches;
 }
 
 bool TextReplacer::lineEdgesAreGood( const std::string& str, const std::string& subject ) {
+
     if ( lastNonWhiteSpace( begin, end ) != std::string::npos ) {
         return false;
     }
     begin = ( end += ( str.size() ) );
-    if ( *( begin - 1 ) == '\n' ) {
+    if ( *begin == '\n' ) {
         return true;
     }
     while ( ( *end != '\n' ) && ( end != subject.end() ) ) {
@@ -155,54 +160,59 @@ bool TextReplacer::lineEdgesAreGood( const std::string& str, const std::string& 
     return ( lastNonWhiteSpace( begin, end ) == std::string::npos );
 }
 
-// good
 bool TextReplacer::substringIsMatch( const std::string& subject, std::string::iterator it,
                                      const std::string& str ) const {
     if ( str.size() ) {
         for ( const auto& c : str ) {
             if ( it != subject.end() ) {
                 if ( *it != c ) {
+
                     return false;
                 }
                 ++it;
             }
             else {
+
                 return false;
             }
         }
     };
+
     return true;
 }
 
-// good
-void TextReplacer::setPermutationIndentation( const SelectedMutation& sm, const std::string& indent ) {
-    if ( sm.data.isNewLined ) {
-        permutationString = indent;
+void TextReplacer::setPermutationIndentation( const std::string& _replacement, const std::string& indent ) {
+    replacementStr = "";  // reset
+    if ( isNewLined ) {
+        replacementStr = indent;
     }
-    if ( isMultilineString( sm.mutation ) && addIndentation ) {
-        std::vector<std::string> permLines = separateLinesIntoVector( sm.mutation );
-        permutationString += permLines[0];
+    if ( isMultilineString( _replacement ) && addIndentation ) {
+        std::vector<std::string> permLines = separateLinesIntoVector( _replacement );
+        replacementStr += permLines[0] + "\n";
 
         for ( size_t i = 1; i < permLines.size(); ++i ) {
-            permutationString += indent + permLines[i];
+            replacementStr += indent + permLines[i] + "\n";
+        }
+        if ( _replacement.back() != '\n' ) {
+            replacementStr.pop_back();
         }
     }
     else {
-        permutationString += std::string( sm.mutation );
+        replacementStr += _replacement;
     }
 }
 
-bool TextReplacer::edgesGoodAndReplacementSuccessful( std::string& subject, const SelectedMutation& sm ) {
+bool TextReplacer::edgesGoodAndReplacementSuccessful( std::string& subject, const std::string& _replacement ) {
     std::string indent( begin, end );
-    if ( !lineEdgesAreGood( patternString, subject ) ) {
+    if ( !lineEdgesAreGood( patternStr, subject ) ) {
         return false;
     }
-    addIndentation = !isMultilineString( sm.pattern );
+    addIndentation = !isMultilineString( patternStr );
 
-    setPermutationIndentation( sm, indent );
+    setPermutationIndentation( _replacement, indent );
 
-    if ( sm.data.isNewLined ) {
-        permutationString.push_back( '\n' );
+    if ( isNewLined ) {
+        replacementStr.push_back( '\n' );
         if ( end == subject.end() ) {
             subject.push_back( '\n' );
             end = subject.end() - 1;
@@ -212,14 +222,15 @@ bool TextReplacer::edgesGoodAndReplacementSuccessful( std::string& subject, cons
     }
 
     ++matches;
-    subject.replace( pos, lengthToRemove, permutationString );
-    pos += permutationString.length();
+    subject.replace( pos, lengthToRemove, replacementStr );
+    pos += replacementStr.length();
     return true;
 }
 
 bool TextReplacer::lines3AndOnAreGood( const std::string& subject, std::vector<std::string>::iterator& linesIt,
                                        const std::vector<std::string>::iterator& vecEnd ) {
     while ( ++linesIt != vecEnd ) {
+        begin = ++end;
         if ( !wholeSublineOfMultilineIsMatch( subject, *linesIt ) ) {
             return false;
         }
@@ -228,6 +239,7 @@ bool TextReplacer::lines3AndOnAreGood( const std::string& subject, std::vector<s
 }
 
 bool TextReplacer::wholeSublineOfMultilineIsMatch( const std::string& subject, const std::string& str ) {
+
     if ( addIndentation ) {
         end = begin + indentation;
     }
@@ -244,6 +256,7 @@ bool TextReplacer::wholeSublineOfMultilineIsMatch( const std::string& subject, c
 }
 
 bool TextReplacer::line2IsGood( const std::string& subject, std::vector<std::string>::iterator& linesIt ) {
+    begin = ++end;
     if ( !substringIsMatch( subject, end, *( ++linesIt ) ) ) {
         if ( indentation ) {
             addIndentation = true;  // try again but now indented

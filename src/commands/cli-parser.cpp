@@ -33,48 +33,52 @@
 #include <iostream>
 #include <sstream>
 
+#include "common.hpp"
 #include "excepts.hpp"
+
+bool verbose = false;
 
 enum class MutateOpts : int { _PADD_START = 255, MIN_COUNT, MAX_COUNT };
 
-static std::string genErrorMessage(const char* arg) {
-    std::string s(" (at ");
-    s.append(sanitizeOutputMessage(arg));
-    s.append("): ");
+static std::string genErrorMessage( const char* arg ) {
+    std::string s( " (at " );
+    s.append( sanitizeOutputMessage( arg ) );
+    s.append( "): " );
     return s;
 }
 
 const char* STDIN_DASH_INIDCATOR = "-";
 
 // adapted from https://www.gnu.org/software/libc/manual/html_node/Getopt-Long-Option-Example.html
-ParseArgvStatusCode parseArgs(CLIOptions* output, std::vector<std::string>* nonPositionals, int argc,
-                              const char** argv) {
-    static const char* short_options = "+i:m:o:r:w:s:p:c:f:h:v:F";
+ParseArgvStatusCode parseArgs( CLIOptions* output, std::vector<std::string>* nonPositionals, int argc,
+                               const char** argv ) {
+    static const char* short_options = "+i:m:o:r:w:s:p:c:f:hvFV";
 
-    static struct option long_options[] = {{"input", required_argument, NULL, 'i'},
-                                           {"mutations", required_argument, NULL, 'm'},
-                                           {"output", required_argument, NULL, 'o'},
-                                           {"read-seed", required_argument, NULL, 'r'},
-                                           {"write-seed", required_argument, NULL, 'w'},
-                                           {"seed", required_argument, NULL, 's'},
-                                           {"count", required_argument, NULL, 'c'},
-                                           {"min-count", required_argument, NULL, (int)MutateOpts::MIN_COUNT},
-                                           {"max-count", required_argument, NULL, (int)MutateOpts::MAX_COUNT},
-                                           {"format", required_argument, NULL, 'f'},
-                                           {"help", no_argument, NULL, 'h'},
-                                           {"license", no_argument, NULL, 'v'},
-                                           {"version", no_argument, NULL, 'v'},
-                                           {"force", no_argument, NULL, 'F'},
-                                           {NULL, 0, NULL, 0}};
+    static struct option long_options[] = { { "input", required_argument, NULL, 'i' },
+                                            { "mutations", required_argument, NULL, 'm' },
+                                            { "output", required_argument, NULL, 'o' },
+                                            { "read-seed", required_argument, NULL, 'r' },
+                                            { "write-seed", required_argument, NULL, 'w' },
+                                            { "seed", required_argument, NULL, 's' },
+                                            { "count", required_argument, NULL, 'c' },
+                                            { "min-count", required_argument, NULL, (int)MutateOpts::MIN_COUNT },
+                                            { "max-count", required_argument, NULL, (int)MutateOpts::MAX_COUNT },
+                                            { "format", required_argument, NULL, 'f' },
+                                            { "help", no_argument, NULL, 'h' },
+                                            { "license", no_argument, NULL, 'v' },
+                                            { "version", no_argument, NULL, 'v' },
+                                            { "force", no_argument, NULL, 'F' },
+                                            { "verbose", no_argument, NULL, 'V' },
+                                            { NULL, 0, NULL, 0 } };
 
     int nextStartIndex = 1;
     int previousStartIndex = 1;
-    while (nextStartIndex < argc) {
+    while ( nextStartIndex < argc ) {
         optind = nextStartIndex;  /// skip over 0th argument
         opterr = 1;               // print error messages to stderr
 
         previousStartIndex = nextStartIndex;
-        while (1) {
+        while ( 1 ) {
             /* getopt_long stores the option index here. */
             int option_index = 0;
 
@@ -82,14 +86,14 @@ ParseArgvStatusCode parseArgs(CLIOptions* output, std::vector<std::string>* nonP
 
             optarg = nullptr;  // set the default if it doesn't get modified
 
-            int c = getopt_long(argc, (char* const*)argv, short_options, long_options, &option_index);
+            int c = getopt_long( argc, (char* const*)argv, short_options, long_options, &option_index );
 
             /* Detect the end of the options. */
-            if (c < 0) {
+            if ( c < 0 ) {
                 break;
             }
 
-            switch (c) {
+            switch ( c ) {
                 case 0:
                     /* If this option set a flag, do nothing else now. */
                     /*if (long_options[option_index].flag != 0)
@@ -101,57 +105,71 @@ ParseArgvStatusCode parseArgs(CLIOptions* output, std::vector<std::string>* nonP
                     break;
 
                 case 'i':
-                    if (optarg == nullptr) throw std::runtime_error(genErrorMessage(rawArgCur));
-                    output->setSrcInput(optarg);
+                    if ( optarg == nullptr )
+                        throw std::runtime_error( genErrorMessage( rawArgCur ) );
+                    output->setSrcInput( optarg );
                     break;
 
                 case 'm':
-                    if (optarg == nullptr) throw std::runtime_error(genErrorMessage(rawArgCur));
-                    output->setTsvInput(optarg);
+                    if ( optarg == nullptr )
+                        throw std::runtime_error( genErrorMessage( rawArgCur ) );
+                    output->setTsvInput( optarg );
                     break;
 
                 case 'o':
-                    if (optarg == nullptr) throw std::runtime_error(genErrorMessage(rawArgCur));
-                    output->setOutputFileName(optarg);
+                    if ( optarg == nullptr )
+                        throw std::runtime_error( genErrorMessage( rawArgCur ) );
+                    output->setOutputFileName( optarg );
                     break;
 
                 case 'r':
-                    if (optarg == nullptr) throw std::runtime_error(genErrorMessage(rawArgCur));
-                    output->setSeedInput(optarg);
+                    if ( optarg == nullptr )
+                        throw std::runtime_error( genErrorMessage( rawArgCur ) );
+                    output->setSeedInput( optarg );
                     break;
 
                 case 'w':
-                    if (optarg == nullptr) throw std::runtime_error(genErrorMessage(rawArgCur));
-                    output->setSeedOutput(optarg);
+                    if ( optarg == nullptr )
+                        throw std::runtime_error( genErrorMessage( rawArgCur ) );
+                    output->setSeedOutput( optarg );
                     break;
 
                 case 's':
-                    if (optarg == nullptr) throw std::runtime_error(genErrorMessage(rawArgCur));
-                    output->setSeed(optarg);
+                    if ( optarg == nullptr )
+                        throw std::runtime_error( genErrorMessage( rawArgCur ) );
+                    output->setSeed( optarg );
                     break;
 
                 case 'c':
-                    if (optarg == nullptr) throw std::runtime_error(genErrorMessage(rawArgCur));
-                    output->setMutCount(optarg);
+                    if ( optarg == nullptr )
+                        throw std::runtime_error( genErrorMessage( rawArgCur ) );
+                    output->setMutCount( optarg );
                     break;
 
                 case (int)MutateOpts::MIN_COUNT:
-                    if (optarg == nullptr) throw std::runtime_error(genErrorMessage(rawArgCur));
-                    output->setMinMutCount(optarg);
+                    if ( optarg == nullptr )
+                        throw std::runtime_error( genErrorMessage( rawArgCur ) );
+                    output->setMinMutCount( optarg );
                     break;
 
                 case (int)MutateOpts::MAX_COUNT:
-                    if (optarg == nullptr) throw std::runtime_error(genErrorMessage(rawArgCur));
-                    output->setMaxMutCount(optarg);
+                    if ( optarg == nullptr )
+                        throw std::runtime_error( genErrorMessage( rawArgCur ) );
+                    output->setMaxMutCount( optarg );
                     break;
 
                 case 'f':
-                    if (optarg == nullptr) throw std::runtime_error(genErrorMessage(rawArgCur));
-                    output->setFormat(optarg);
+                    if ( optarg == nullptr )
+                        throw std::runtime_error( genErrorMessage( rawArgCur ) );
+                    output->setFormat( optarg );
                     break;
 
                 case 'F':
                     output->forceOverwrite();
+                    break;
+
+                case 'V':
+                    verbose = true;
                     break;
 
                 case 'h':
@@ -165,11 +183,11 @@ ParseArgvStatusCode parseArgs(CLIOptions* output, std::vector<std::string>* nonP
                     return ParseArgvStatusCode::ERROR;
 
                 default:
-                    if (1) {
+                    if ( 1 ) {
                         // what happened?
                         std::ostringstream ss;
                         ss << "FATAL ERR: getopts_long returned invalid option id " << c;
-                        throw IOErrorException(ss.str());
+                        throw IOErrorException( ss.str() );
                     }
             }
         }
@@ -181,30 +199,30 @@ ParseArgvStatusCode parseArgs(CLIOptions* output, std::vector<std::string>* nonP
 
         nextStartIndex = optind;
 
-        if (previousStartIndex == nextStartIndex) {
+        if ( previousStartIndex == nextStartIndex ) {
             // prevent infinite loop
-            nonPositionals->emplace_back(argv[nextStartIndex]);
+            nonPositionals->emplace_back( argv[nextStartIndex] );
             ++nextStartIndex;
         }
 
-        if (0 < optind && 0 == strcmp(argv[nextStartIndex - 1], "--")) {
+        if ( 0 < optind && 0 == strcmp( argv[nextStartIndex - 1], "--" ) ) {
             goto doubleDashEndOptions;  // please just ignore this line of code and let's pretend that I didn't use this
                                         // evil cursed statement.
         }
 
-        while (nextStartIndex < argc && argv[nextStartIndex][0] != '-') {
-            nonPositionals->emplace_back(argv[nextStartIndex]);
+        while ( nextStartIndex < argc && argv[nextStartIndex][0] != '-' ) {
+            nonPositionals->emplace_back( argv[nextStartIndex] );
             ++nextStartIndex;
             break;
         }
 
-        if (nextStartIndex < argc && 0 == strcmp(argv[nextStartIndex], "--")) {
+        if ( nextStartIndex < argc && 0 == strcmp( argv[nextStartIndex], "--" ) ) {
             ++nextStartIndex;
 
         doubleDashEndOptions:
 
-            while (nextStartIndex < argc) {
-                nonPositionals->emplace_back(argv[nextStartIndex]);
+            while ( nextStartIndex < argc ) {
+                nonPositionals->emplace_back( argv[nextStartIndex] );
                 ++nextStartIndex;
             }
 

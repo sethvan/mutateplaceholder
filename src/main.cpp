@@ -40,78 +40,79 @@
 #include "common.hpp"
 #include "excepts.hpp"
 
-const bool verbose = true;  // to get status of process messages in classes
-
 using commandsMap =
-    const std::unordered_map<std::string_view, ParseArgvStatusCode (*)(CLIOptions *, std::vector<std::string> *)>;
+    const std::unordered_map<std::string_view, ParseArgvStatusCode ( * )( CLIOptions *, std::vector<std::string> * )>;
 
 // returns status code of success, error or showhelp or showversion
-static ParseArgvStatusCode parseArgvAndPerformAction(int argc, const char **argv);
+static ParseArgvStatusCode parseArgvAndPerformAction( int argc, const char **argv );
 
 // processes final code
-static int processFinalStatus(ParseArgvStatusCode status);
+static int processFinalStatus( ParseArgvStatusCode status );
 
 // ensures commandsMap does not contain any nullptr
 static commandsMap setCommandsMap();
 
-int main(int argc, const char **argv) {
+int main( int argc, const char **argv ) {
     ParseArgvStatusCode status;
 
     try {
-        status = parseArgvAndPerformAction(argc, argv);
-    } catch (const TSVParsingException &ex) {
+        status = parseArgvAndPerformAction( argc, argv );
+    } catch ( const TSVParsingException &ex ) {
         std::cerr << PROGRAM_NAME << ": Error parsing TSV file\n" << ex.what() << std::endl;
         status = ParseArgvStatusCode::ERROR;
-    } catch (const InvalidSeedException &ex) {
+    } catch ( const InvalidSeedException &ex ) {
         std::cerr << PROGRAM_NAME << ": Error processing seed\n" << ex.what() << std::endl;
         status = ParseArgvStatusCode::ERROR;
-    } catch (const InvalidArgumentException &ex) {
+    } catch ( const InvalidArgumentException &ex ) {
         std::cerr << PROGRAM_NAME << ": Error processing arguments\n" << ex.what() << std::endl;
         status = ParseArgvStatusCode::ERROR;
-    } catch (const IOErrorException &ex) {
+    } catch ( const IOErrorException &ex ) {
         std::cerr << PROGRAM_NAME << ": I/O error\n" << ex.what() << std::endl;
         status = ParseArgvStatusCode::ERROR;
-    } catch (const std::exception &ex) {
+    } catch ( const std::exception &ex ) {
         std::cerr << ": Error " << ex.what() << std::endl;
         status = ParseArgvStatusCode::ERROR;
     }
 
-    return processFinalStatus(status);
+    return processFinalStatus( status );
 }
 
 static commandsMap setCommandsMap() {
     bool containsNullptr = true;
 
-    while (containsNullptr) {
+    while ( containsNullptr ) {
         containsNullptr = false;
-        commandsMap temp = {
-            {"mutate", &execMutate}, {"highlight", &execHighlight}, {"score", &execScore}, {"validate", &execValidate}};
-        for (const auto &n : temp) {
-            if (n.second == nullptr) {
+        commandsMap temp = { { "mutate", &execMutate },
+                             { "highlight", &execHighlight },
+                             { "score", &execScore },
+                             { "validate", &execValidate } };
+        for ( const auto &n : temp ) {
+            if ( n.second == nullptr ) {
                 containsNullptr = true;
                 break;
             }
         }
-        if (!containsNullptr) return temp;
+        if ( !containsNullptr )
+            return temp;
     }
     return commandsMap();  // to turn off  `error: control reaches end of non-void function [-Werror=return-type]`
 }
 
-static ParseArgvStatusCode parseArgvAndPerformAction(int argc, const char **argv) {
-    if (argc < 2) {
-        throw InvalidArgumentException("Too few arguments");
+static ParseArgvStatusCode parseArgvAndPerformAction( int argc, const char **argv ) {
+    if ( argc < 2 ) {
+        throw InvalidArgumentException( "Too few arguments" );
     }
 
     CLIOptions parsedArgs;
     std::vector<std::string> nonpositionals;
-    ParseArgvStatusCode status = parseArgs(&parsedArgs, &nonpositionals, argc, argv);
+    ParseArgvStatusCode status = parseArgs( &parsedArgs, &nonpositionals, argc, argv );
 
-    if (status == ParseArgvStatusCode::SUCCESS && 1 < argc && 0 == nonpositionals.size()) {
+    if ( status == ParseArgvStatusCode::SUCCESS && 1 < argc && 0 == nonpositionals.size() ) {
         throw InvalidArgumentException(
-            "No command specified (must be one of 'mutate', 'highlight', 'score', or 'validate')\n");
+            "No command specified (must be one of 'mutate', 'highlight', 'score', or 'validate')\n" );
     }
 
-    switch (status) {
+    switch ( status ) {
         case ParseArgvStatusCode::SUCCESS:
             // continue on with the rest of the program
             break;
@@ -126,22 +127,22 @@ static ParseArgvStatusCode parseArgvAndPerformAction(int argc, const char **argv
     std::string actionName = nonpositionals[0];
 
     try {
-        ParseArgvStatusCode status = commands.at(actionName)(&parsedArgs, &nonpositionals);
+        ParseArgvStatusCode status = commands.at( actionName )( &parsedArgs, &nonpositionals );
         std::string warnings = parsedArgs.getWarnings();
-        if (warnings.size()) {
+        if ( warnings.size() ) {
             std::cerr << warnings;
         }
         return status;
-    } catch (const std::out_of_range &ex) {
+    } catch ( const std::out_of_range &ex ) {
         std::cerr << "Out of range error: " << ex.what() << std::endl;
         return ParseArgvStatusCode::ERROR;
     }
 }
 
-static int processFinalStatus(ParseArgvStatusCode status) {
+static int processFinalStatus( ParseArgvStatusCode status ) {
     const char *indent = "  ";
 
-    switch (status) {
+    switch ( status ) {
         case ParseArgvStatusCode::SUCCESS:
             // nothing to do
             std::cout << std::endl;
@@ -155,16 +156,16 @@ static int processFinalStatus(ParseArgvStatusCode status) {
             std::cout << "Usage: " PROGRAM_NAME " <command> [OPTIONS...]\n" << '\n';
 
             std::cout << "mutate:\n";
-            std::cout << printMutateHelp(indent) << '\n';
+            std::cout << printMutateHelp( indent ) << '\n';
 
             std::cout << "highlight:\n";
-            std::cout << printHighlightHelp(indent) << '\n';
+            std::cout << printHighlightHelp( indent ) << '\n';
 
             std::cout << "score:\n";
-            std::cout << printScoreHelp(indent) << '\n';
+            std::cout << printScoreHelp( indent ) << '\n';
 
             std::cout << "validate:\n";
-            std::cout << printValidateHelp(indent) << '\n';
+            std::cout << printValidateHelp( indent ) << '\n';
 
             std::cout << "Common options:\n";
             //           "  --version                ";
